@@ -3,8 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#087486">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Chiclana">
+<link rel="apple-touch-startup-image" href="splash-1290x2796.png">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
 <title>Chiclana Fahrplan</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -47,6 +52,7 @@
     </div>
 
     <button id="searchBtn" class="search-btn" type="button"><span data-i18n="search">Verbindungen suchen</span></button>
+    <button id="nowBtn" class="now-btn" type="button">⏱ <span data-i18n="next">Nächste Verbindung</span></button>
 
     <div class="quick-time"><span data-i18n="selectedTime">Fahrten ab</span> <b id="quickTime">--:--</b> · <span id="quickDate">--.--.----</span></div>
 
@@ -82,6 +88,7 @@
         <button type="button" data-lang="en" class="lang">🇬🇧 English</button>
       </div>
     </div>
+    <label class="more-row toggle-row"><span>🌙</span><span data-i18n="darkMode">Dunkelmodus</span><input id="darkToggle" type="checkbox"><b>›</b></label>
     <button class="more-row" id="aboutRow"><span>ⓘ</span><span data-i18n="about">Über diese App</span><b>›</b></button>
     <div id="aboutPanel" class="about-panel hidden">
       <h3>Chiclana Fahrplan</h3>
@@ -90,6 +97,11 @@
     </div>
   </div>
 </div>
+
+<div id="favoritesModal" class="modal hidden"><div class="sheet feature-sheet"><button id="closeFavorites" class="close" type="button">×</button><div id="favoritesBody"></div></div></div>
+
+<div id="linesModal" class="modal hidden"><div class="sheet feature-sheet"><button id="closeLines" class="close" type="button">×</button><div id="lineListPanel"><h2 data-i18n="linesTitle">Linien & Haltestellen</h2><div class="stop-search"><span>⌕</span><input id="stopSearch" data-i18n-placeholder="stopsSearch" placeholder="Haltestelle suchen"></div><div id="stopResults"></div><h3 class="subhead">Linien</h3><div id="lineList"></div></div><div id="lineDetail" class="hidden"></div></div></div>
+
 <script src="app.js"></script>
 </body>
 </html>

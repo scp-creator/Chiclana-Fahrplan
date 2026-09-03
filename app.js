@@ -1,349 +1,77 @@
 let DATA, activeType = "bus", stopNames = [];
-function detectDeviceLanguage() {
-  const langs = Array.isArray(navigator.languages) && navigator.languages.length
-    ? navigator.languages
-    : [navigator.language || "de"];
-  for (const lang of langs) {
-    const base = String(lang).toLowerCase().split("-")[0];
-    if (base === "de" || base === "es" || base === "en") return base;
-  }
+let allConnections = [], currentSearch = null;
+let currentLang = localStorage.getItem("chiclanaLanguage") || detectDeviceLanguage();
+
+function detectDeviceLanguage(){
+  const langs = Array.isArray(navigator.languages)&&navigator.languages.length ? navigator.languages : [navigator.language||"de"];
+  for(const lang of langs){ const base=String(lang).toLowerCase().split("-")[0]; if(["de","es","en"].includes(base)) return base; }
   return "en";
 }
-const savedLanguage = localStorage.getItem("chiclanaLanguage");
-let currentLang = savedLanguage || detectDeviceLanguage();
-
-const $ = id => document.getElementById(id);
-
-const I18N = {
-  de: {
-    subtitle:"Fahrplan", from:"Von", to:"Nach", date:"Datum", time:"Uhrzeit",
-    bus:"Bus", tram:"Tram", both:"Beide", search:"Verbindungen suchen",
-    language:"Sprache", selectedTime:"Fahrten ab", moreTitle:"Mehr", about:"Über diese App", imageCreditTitle:"Bildnachweis", imageCreditText:"Headerbild: Castillo de Sancti Petri bei Sonnenuntergang. Quelle und Lizenz bitte gemäß Originalquelle des verwendeten Fotos beachten.", available:"Verfügbare Verbindungen", earlier:"Frühere Verbindungen", later:"Spätere Verbindungen",
-    navSearch:"Suchen", navFavorites:"Favoriten", navLines:"Linien", navMore:"Mehr",
-    stopPlaceholder:"Haltestelle eingeben oder wählen",
-    noStop:"Keine passende Haltestelle",
-    chooseStops:"Bitte bei „Von“ und „Nach“ eine Haltestelle auswählen oder eingeben.",
-    noConnection:"Keine direkte Verbindung für diese Haltestellen gefunden.",
-    found:"gefunden", openArrival:"Ankunft offen",
-    noPublishedArrival:"Keine veröffentlichte Ankunftszeit",
-    yourBoarding:"Dein Einstieg", yourDestination:"Dein Ziel",
-    validFrom:"Fahrplan gültig vom", until:"bis"
-  },
-  es: {
-    subtitle:"Horario", from:"Desde", to:"Hasta", date:"Fecha", time:"Hora",
-    bus:"Autobús", tram:"Tranvía", both:"Ambos", search:"Buscar conexiones",
-    language:"Idioma", selectedTime:"Viajes desde", moreTitle:"Más", about:"Sobre esta app", imageCreditTitle:"Créditos de imagen", imageCreditText:"Imagen de cabecera: Castillo de Sancti Petri al atardecer. Consulta la fuente y licencia original del fotógrafo.", available:"Conexiones disponibles", earlier:"Conexiones anteriores", later:"Conexiones posteriores",
-    navSearch:"Buscar", navFavorites:"Favoritos", navLines:"Líneas", navMore:"Más",
-    stopPlaceholder:"Escribe o elige una parada",
-    noStop:"No se encontró ninguna parada",
-    chooseStops:"Selecciona o introduce una parada en «Desde» y «Hasta».",
-    noConnection:"No se encontró una conexión directa para estas paradas.",
-    found:"encontradas", openArrival:"Llegada abierta",
-    noPublishedArrival:"No hay hora de llegada publicada",
-    yourBoarding:"Tu subida", yourDestination:"Tu destino",
-    validFrom:"Horario válido del", until:"al"
-  },
-  en: {
-    subtitle:"Timetable", from:"From", to:"To", date:"Date", time:"Time",
-    bus:"Bus", tram:"Tram", both:"Both", search:"Search connections",
-    language:"Language", selectedTime:"Trips from", moreTitle:"More", about:"About this app", imageCreditTitle:"Image credits", imageCreditText:"Header image: Castillo de Sancti Petri at sunset. Please follow the original photographer’s source and license terms.", available:"Available connections", earlier:"Earlier connections", later:"Later connections",
-    navSearch:"Search", navFavorites:"Favorites", navLines:"Lines", navMore:"More",
-    stopPlaceholder:"Enter or choose a stop",
-    noStop:"No matching stop",
-    chooseStops:"Please select or enter a stop for “From” and “To”.",
-    noConnection:"No direct connection found for these stops.",
-    found:"found", openArrival:"Arrival open",
-    noPublishedArrival:"No published arrival time",
-    yourBoarding:"Your boarding", yourDestination:"Your destination",
-    validFrom:"Timetable valid from", until:"to"
-  }
+const $=id=>document.getElementById(id);
+const I18N={
+ de:{subtitle:"Fahrplan",from:"Von",to:"Nach",date:"Datum",time:"Uhrzeit",bus:"Bus",tram:"Tram",both:"Beide",search:"Verbindungen suchen",language:"Sprache",selectedTime:"Fahrten ab",moreTitle:"Mehr",about:"Über diese App",imageCreditTitle:"Bildnachweis",imageCreditText:"Headerbild: Castillo de Sancti Petri bei Sonnenuntergang. Bitte Quelle und Lizenz der Originalaufnahme beachten.",available:"Verfügbare Verbindungen",earlier:"Frühere Verbindungen",later:"Spätere Verbindungen",navSearch:"Suchen",navFavorites:"Favoriten",navLines:"Linien",navMore:"Mehr",stopPlaceholder:"Haltestelle eingeben oder wählen",noStop:"Keine passende Haltestelle",chooseStops:"Bitte bei „Von“ und „Nach“ eine Haltestelle auswählen oder eingeben.",noConnection:"Keine direkte Verbindung für diese Haltestellen gefunden.",found:"gefunden",openArrival:"Ankunft offen",noPublishedArrival:"Keine veröffentlichte Ankunftszeit",yourBoarding:"Dein Einstieg",yourDestination:"Dein Ziel",validFrom:"Fahrplan gültig vom",until:"bis",favoritesTitle:"Favoriten",noFavorites:"Noch keine Favoriten gespeichert.",saveFavorite:"Favorit speichern",removeFavorite:"Favorit entfernen",recent:"Letzte Suchen",noRecent:"Noch keine letzten Suchen.",linesTitle:"Linien & Haltestellen",stopsSearch:"Haltestelle suchen",serves:"Fährt hier",next:"Nächste Verbindung",now:"Jetzt",minutes:"Min.",departingNow:"in",startTime:"Startzeit ab",schematic:"schematisch",darkMode:"Dunkelmodus",darkOn:"Ein",darkOff:"Aus",season:"Saison",active:"aktiv",outside:"außerhalb der Saison",stopLines:"Linien an dieser Haltestelle",back:"Zurück",close:"Schließen",map:"Streckenkarte",aboutText:"Persönliche Fahrplan-App für Chiclana de la Frontera. Fahrplandaten können saisonal und verkehrsbedingt abweichen."},
+ es:{subtitle:"Horario",from:"Desde",to:"Hasta",date:"Fecha",time:"Hora",bus:"Autobús",tram:"Tranvía",both:"Ambos",search:"Buscar conexiones",language:"Idioma",selectedTime:"Viajes desde",moreTitle:"Más",about:"Sobre esta app",imageCreditTitle:"Créditos de imagen",imageCreditText:"Imagen de cabecera: Castillo de Sancti Petri al atardecer. Consulta la fuente y licencia de la imagen original.",available:"Conexiones disponibles",earlier:"Conexiones anteriores",later:"Conexiones posteriores",navSearch:"Buscar",navFavorites:"Favoritos",navLines:"Líneas",navMore:"Más",stopPlaceholder:"Escribe o elige una parada",noStop:"No se encontró ninguna parada",chooseStops:"Selecciona o introduce una parada en «Desde» y «Hasta».",noConnection:"No se encontró una conexión directa para estas paradas.",found:"encontradas",openArrival:"Llegada abierta",noPublishedArrival:"No hay hora de llegada publicada",yourBoarding:"Tu subida",yourDestination:"Tu destino",validFrom:"Horario válido del",until:"al",favoritesTitle:"Favoritos",noFavorites:"Aún no hay favoritos guardados.",saveFavorite:"Guardar favorito",removeFavorite:"Quitar favorito",recent:"Búsquedas recientes",noRecent:"Aún no hay búsquedas recientes.",linesTitle:"Líneas y paradas",stopsSearch:"Buscar parada",serves:"Pasa por aquí",next:"Próxima conexión",now:"Ahora",minutes:"min.",departingNow:"en",startTime:"Hora de salida desde",schematic:"esquemático",darkMode:"Modo oscuro",darkOn:"Activado",darkOff:"Desactivado",season:"Temporada",active:"activo",outside:"fuera de temporada",stopLines:"Líneas en esta parada",back:"Volver",close:"Cerrar",map:"Mapa de ruta",aboutText:"App personal de horarios para Chiclana de la Frontera. Los horarios pueden variar según temporada y tráfico."},
+ en:{subtitle:"Timetable",from:"From",to:"To",date:"Date",time:"Time",bus:"Bus",tram:"Tram",both:"Both",search:"Search connections",language:"Language",selectedTime:"Trips from",moreTitle:"More",about:"About this app",imageCreditTitle:"Image credits",imageCreditText:"Header image: Castillo de Sancti Petri at sunset. Please follow the original source and license.",available:"Available connections",earlier:"Earlier connections",later:"Later connections",navSearch:"Search",navFavorites:"Favorites",navLines:"Lines",navMore:"More",stopPlaceholder:"Enter or choose a stop",noStop:"No matching stop",chooseStops:"Please select or enter a stop for From and To.",noConnection:"No direct connection found for these stops.",found:"found",openArrival:"Arrival open",noPublishedArrival:"No published arrival time",yourBoarding:"Your boarding",yourDestination:"Your destination",validFrom:"Timetable valid from",until:"to",favoritesTitle:"Favorites",noFavorites:"No favorites saved yet.",saveFavorite:"Save favorite",removeFavorite:"Remove favorite",recent:"Recent searches",noRecent:"No recent searches yet.",linesTitle:"Lines & stops",stopsSearch:"Search stop",serves:"Serves this stop",next:"Next connection",now:"Now",minutes:"min.",departingNow:"in",startTime:"Origin departure",schematic:"schematic",darkMode:"Dark mode",darkOn:"On",darkOff:"Off",season:"Season",active:"active",outside:"out of season",stopLines:"Lines at this stop",back:"Back",close:"Close",map:"Route map",aboutText:"Personal timetable app for Chiclana de la Frontera. Timetables may vary by season and traffic."}
 };
+function t(k){return (I18N[currentLang]&&I18N[currentLang][k])||I18N.de[k]||k}
+function normalizeText(s){return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim()}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function mins(v){const [h,m]=String(v).split(":").map(Number);return h*60+m}
+function fmtDuration(a,b){let d=mins(b)-mins(a);if(d<0)d+=1440;return `${d} ${t("minutes")}`}
+function todayISO(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`}
+function setCurrentDateTime(){const n=new Date();$("date").value=todayISO();$("time").value=`${String(n.getHours()).padStart(2,"0")}:${String(n.getMinutes()).padStart(2,"0")}`}
+function firstPublishedTime(trip){const i=trip.findIndex(v=>v&&v!=="--");return i>=0?trip[i]:"--"}
+function findStopIndex(stops,q){q=normalizeText(q);if(!q)return-1;let i=stops.findIndex(s=>normalizeText(s)===q);if(i>=0)return i;i=stops.findIndex(s=>normalizeText(s).startsWith(q));if(i>=0)return i;return stops.findIndex(s=>normalizeText(s).includes(q))}
 
-function t(key){ return (I18N[currentLang] && I18N[currentLang][key]) || I18N.de[key] || key; }
+function getFavs(){try{return JSON.parse(localStorage.getItem("chiclanaFavorites")||"[]")}catch{return[]}}
+function setFavs(v){localStorage.setItem("chiclanaFavorites",JSON.stringify(v))}
+function favKey(from,to){return normalizeText(from)+"|"+normalizeText(to)}
+function isFav(from,to){return getFavs().some(x=>x.key===favKey(from,to))}
+function toggleFav(from,to){let a=getFavs();const k=favKey(from,to);if(a.some(x=>x.key===k))a=a.filter(x=>x.key!==k);else a.unshift({key:k,from,to});setFavs(a.slice(0,20));renderFavorites()}
+function getRecent(){try{return JSON.parse(localStorage.getItem("chiclanaRecent")||"[]")}catch{return[]}}
+function saveRecent(from,to){if(!from||!to)return;let a=getRecent().filter(x=>x.key!==favKey(from,to));a.unshift({key:favKey(from,to),from,to});localStorage.setItem("chiclanaRecent",JSON.stringify(a.slice(0,8)))}
+function applyTheme(){const d=localStorage.getItem("chiclanaDark")==="1";document.documentElement.dataset.theme=d?"dark":"";if($("darkToggle"))$("darkToggle").checked=d}
 
-function normalizeText(s) {
-  return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+fetch("data.json").then(r=>r.json()).then(d=>{DATA=d;init()}).catch(()=>$("results").innerHTML='<div class="empty">Fahrplandaten konnten nicht geladen werden.</div>');
+
+function applyLanguage(){document.documentElement.lang=currentLang;document.querySelectorAll("[data-i18n]").forEach(el=>{if(I18N[currentLang][el.dataset.i18n])el.textContent=I18N[currentLang][el.dataset.i18n]});document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>el.placeholder=t(el.dataset.i18nPlaceholder));document.querySelectorAll(".lang").forEach(b=>b.classList.toggle("active",b.dataset.lang===currentLang));document.title=`Chiclana · ${t("subtitle")}`;updateQuickTime();if(DATA)search(false)}
+function updateQuickTime(){$("quickTime").textContent=$("time").value||"--:--";const d=$("date").value;if(d){const [y,m,day]=d.split("-");$("quickDate").textContent=`${day}.${m}.${y}`}}
+
+function init(){
+ stopNames=[...new Set(DATA.lines.flatMap(l=>l.stops))].sort((a,b)=>a.localeCompare(b,"de"));setCurrentDateTime();applyTheme();updateQuickTime();setupAutocomplete("from","fromSuggestions");setupAutocomplete("to","toSuggestions");
+ document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));b.classList.add("active");activeType=b.dataset.type;search(false)}));
+ ["from","to","date","time"].forEach(id=>$(id).addEventListener("change",()=>{updateQuickTime();search(false)}));
+ document.querySelectorAll(".lang").forEach(b=>b.addEventListener("click",()=>{currentLang=b.dataset.lang;localStorage.setItem("chiclanaLanguage",currentLang);applyLanguage()}));
+ $("searchBtn").addEventListener("click",()=>search(true));
+ $("nowBtn").addEventListener("click",()=>{setCurrentDateTime();updateQuickTime();search(true)});
+ $("swapBtn").addEventListener("click",()=>{[$("from").value,$("to").value]=[$("to").value,$("from").value];search(true)});
+ $("closeDetail").addEventListener("click",closeDetail);$("closeMore").addEventListener("click",()=>$("moreModal").classList.add("hidden"));$("closeFavorites").addEventListener("click",()=>$("favoritesModal").classList.add("hidden"));$("closeLines").addEventListener("click",()=>$("linesModal").classList.add("hidden"));
+ $("languageRow").addEventListener("click",()=>$("languagePanel").classList.toggle("hidden"));$("aboutRow").addEventListener("click",()=>$("aboutPanel").classList.toggle("hidden"));$("darkToggle").addEventListener("change",e=>{localStorage.setItem("chiclanaDark",e.target.checked?"1":"0");applyTheme()});
+ document.querySelectorAll("nav a").forEach(a=>a.addEventListener("click",()=>{const n=a.dataset.nav;if(n==="more"){$("moreModal").classList.remove("hidden");return}document.querySelectorAll("nav a").forEach(x=>x.classList.remove("selected"));a.classList.add("selected");if(n==="search"){window.scrollTo({top:0,behavior:"smooth"})}if(n==="favorites")openFavorites();if(n==="lines")openLines()}));
+ ["moreModal","favoritesModal","linesModal","detail"].forEach(id=>$(id).addEventListener("click",e=>{if(e.target===$(id))$(id).classList.add("hidden")}));
+ $("stopSearch").addEventListener("input",renderStopSearch);applyLanguage();
+}
+function setupAutocomplete(inputId,suggestionsId){const input=$(inputId),box=$(suggestionsId);function render(){const q=normalizeText(input.value);const m=stopNames.filter(n=>!q||normalizeText(n).includes(q)).slice(0,8);box.innerHTML=m.length?m.map(n=>`<button type="button" class="suggestion">${escapeHtml(n)}</button>`).join(""):`<div class="no-suggestion">${escapeHtml(t("noStop"))}</div>`;box.classList.remove("hidden");box.querySelectorAll(".suggestion").forEach(b=>b.addEventListener("click",()=>{input.value=b.textContent;box.classList.add("hidden");search(false)}))}input.addEventListener("focus",render);input.addEventListener("input",render);input.addEventListener("keydown",e=>{if(e.key==="Escape")box.classList.add("hidden")});document.addEventListener("click",e=>{if(!input.contains(e.target)&&!box.contains(e.target))box.classList.add("hidden")})}
+
+function buildConnections(from,to,date){const out=[];const rf=normalizeText(from),rt=normalizeText(to);DATA.lines.forEach(line=>{if(activeType!=="all"&&line.type!==activeType)return;if(line.validFrom&&date<line.validFrom)return;if(line.validUntil&&date>line.validUntil)return;const fi=findStopIndex(line.stops,rf),ti=findStopIndex(line.stops,rt);if(fi<0||ti<0||fi===ti||ti<fi)return;line.trips.forEach((trip,idx)=>{const originTime=firstPublishedTime(trip);if(originTime==="--")return;const a=trip[fi]&&trip[fi]!=="--"?trip[fi]:"--",b=trip[ti]&&trip[ti]!=="--"?trip[ti]:"--";out.push({line,trip,idx,fi,ti,a,b,originTime,sortTime:a!=="--"?a:originTime,boardingPublished:a!=="--",arrivalPublished:b!=="--"})})});out.sort((a,b)=>mins(a.sortTime)-mins(b.sortTime));return out}
+
+function countdown(dep,date){if(!dep||dep==="--"||date!==todayISO())return"";const now=new Date(),d=new Date(`${date}T${dep}:00`);let delta=Math.round((d-now)/60000);if(delta<0)delta+=1440;if(delta<0||delta>180)return"";return delta===0?`· ${t("now")}`:`· ${t("departingNow")} ${delta} ${t("minutes")}`}
+function search(save=true){if(!DATA)return;const from=$("from").value.trim(),to=$("to").value.trim(),date=$("date").value,after=mins($("time").value||"00:00");if(!from||!to){$("count").textContent="";$("results").innerHTML=`<div class="empty">${escapeHtml(t("chooseStops"))}</div>`;return}if(save)saveRecent(from,to);const all=buildConnections(from,to,date);allConnections=all;currentSearch={from,to,date};if(!all.length){$("count").textContent="";$("results").innerHTML=`<div class="empty">${escapeHtml(t("noConnection"))}</div>`;return}let pivot=all.findIndex(x=>mins(x.sortTime)>=after);if(pivot<0)pivot=all.length;const start=pivot>=all.length?Math.max(0,all.length-6):pivot;renderResultsWindow(all,from,to,start)}
+function renderResultsWindow(all,from,to,startIndex){const pageSize=6;startIndex=Math.max(0,Math.min(startIndex,Math.max(0,all.length-pageSize)));const visible=all.slice(startIndex,startIndex+pageSize),end=startIndex+visible.length-1;$("count").textContent=`${all.length} ${t("found")}`;const earlier=startIndex>0?`<button type="button" class="connection-nav earlier" id="earlierBtn">‹ ${escapeHtml(t("earlier"))}</button>`:"";const later=end<all.length-1?`<button type="button" class="connection-nav later" id="laterBtn">${escapeHtml(t("later"))} ›</button>`:"";
+ const cards=visible.map(x=>{const l7=x.line.name==="L-7",dep=x.a==="--"?x.originTime:x.a,arr=x.b==="--"?t("openArrival"):x.b,dur=x.b==="--"?t("noPublishedArrival"):fmtDuration(dep,x.b),key=`${x.line.id}-${x.idx}-${x.fi}-${x.ti}`,fav=isFav(from,to);return `<article class="result ${x.line.type}" data-result-key="${escapeHtml(key)}"><div class="result-top"><div><span class="badge ${x.line.type} ${l7?"l7":""}">${x.line.type==="bus"?"🚌":"🚋"} ${escapeHtml(x.line.name)}</span><span class="direction">${escapeHtml(x.line.direction)}</span></div><button type="button" class="fav-btn ${fav?"on":""}" data-fav="${escapeHtml(favKey(from,to))}" aria-label="${escapeHtml(fav?t("removeFavorite"):t("saveFavorite"))}">${fav?"♥":"♡"}</button></div><div class="times"><strong>${escapeHtml(dep)} → ${escapeHtml(arr)}</strong><span class="dur">${escapeHtml(dur)}${x.b!=="--"?"　›":""}</span></div><div class="route-mini">${escapeHtml(from)} → ${escapeHtml(to)} ${x.a==="--"?`<small>· ${escapeHtml(t("startTime"))} ${escapeHtml(x.originTime)}</small>`:""}</div><div class="countdown">${escapeHtml(countdown(x.a==="--"?"":dep,currentSearch.date))}</div></article>`}).join("");
+ $("results").innerHTML=`${earlier}${cards||`<div class="empty">${escapeHtml(t("noConnection"))}</div>`}${later}`;
+ document.querySelectorAll(".result").forEach(el=>el.addEventListener("click",e=>{if(e.target.closest(".fav-btn"))return;const f=all.find(x=>`${x.line.id}-${x.idx}-${x.fi}-${x.ti}`===el.dataset.resultKey);if(f)openDetail(f)}));
+ document.querySelectorAll(".fav-btn").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();toggleFav(from,to);renderResultsWindow(all,from,to,startIndex)}));
+ if($("earlierBtn"))$("earlierBtn").onclick=()=>{renderResultsWindow(all,from,to,Math.max(0,startIndex-pageSize));document.getElementById("results").scrollIntoView({behavior:"smooth",block:"start"})};if($("laterBtn"))$("laterBtn").onclick=()=>{renderResultsWindow(all,from,to,Math.min(Math.max(0,all.length-pageSize),startIndex+pageSize));document.getElementById("results").scrollIntoView({behavior:"smooth",block:"start"})};
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
-  }[c]));
-}
+function openDetail(x){const l=x.line;const visible=l.stops.map((name,i)=>{const personal=i===x.fi||i===x.ti,start=i===0,end=i===l.stops.length-1,time=x.trip[i];return `<div class="stop ${personal?"personal":""} ${start?"start":""} ${end?"end":""} ${time==="--"?"no-time":""}"><div class="time">${time==="--"?"":escapeHtml(time)}</div><div class="dot"></div><div class="name">${escapeHtml(name)} ${personal?`<span class="tag">${escapeHtml(i===x.fi?t("yourBoarding"):t("yourDestination"))}</span>`:""}</div></div>`}).join("");const map=l.stops.map((s,i)=>`<div class="map-stop ${i===x.fi||i===x.ti?"selected":""}"><span></span><small>${escapeHtml(s)}</small></div>`).join("");const dep=x.a==="--"?x.originTime:x.a;$("detailBody").innerHTML=`<div class="detail-head"><span class="badge ${l.type} ${l.name==="L-7"?"l7":""}">${l.type==="bus"?"🚌":"🚋"} ${escapeHtml(l.name)}</span><div>${escapeHtml(l.direction)}</div></div><div class="summary"><div><strong>${escapeHtml(dep)}</strong><br><span>${escapeHtml(t("yourBoarding"))}<br>${escapeHtml(l.stops[x.fi])}</span></div><div>${x.a==="--"||x.b==="--"?escapeHtml(t("noPublishedArrival")):escapeHtml(fmtDuration(x.a,x.b))}</div><div style="text-align:right"><strong>${x.b==="--"?escapeHtml(t("openArrival")):escapeHtml(x.b)}</strong><br><span>${escapeHtml(t("yourDestination"))}<br>${escapeHtml(l.stops[x.ti])}</span></div></div><h3 class="detail-section-title">${escapeHtml(t("map"))} <small>(${escapeHtml(t("schematic"))})</small></h3><div class="route-map">${map}</div><div class="timeline">${visible}</div><div class="note">${escapeHtml(t("validFrom"))} ${new Date(l.validFrom+"T00:00:00").toLocaleDateString(currentLang==="de"?"de-DE":currentLang==="es"?"es-ES":"en-GB")} ${escapeHtml(t("until"))} ${l.validUntil?new Date(l.validUntil+"T00:00:00").toLocaleDateString(currentLang==="de"?"de-DE":currentLang==="es"?"es-ES":"en-GB"):""}.</div>`;$("detail").classList.remove("hidden")}
+function closeDetail(){$("detail").classList.add("hidden")}
 
-fetch("data.json")
-  .then(r => r.json())
-  .then(d => { DATA = d; init(); })
-  .catch(() => { $("results").innerHTML = '<div class="empty">Fahrplandaten konnten nicht geladen werden.</div>'; });
+function openFavorites(){renderFavorites();$("favoritesModal").classList.remove("hidden")}
+function renderFavorites(){const favs=getFavs(),recent=getRecent();let favHtml=favs.length?favs.map(x=>`<button class="saved-route" data-from="${escapeHtml(x.from)}" data-to="${escapeHtml(x.to)}"><span>♥</span><div><b>${escapeHtml(x.from)}</b><small>→ ${escapeHtml(x.to)}</small></div><i>›</i></button>`).join(""):`<div class="empty compact">${escapeHtml(t("noFavorites"))}</div>`;let recHtml=recent.length?recent.map(x=>`<button class="saved-route recent-route" data-from="${escapeHtml(x.from)}" data-to="${escapeHtml(x.to)}"><span>↺</span><div><b>${escapeHtml(x.from)}</b><small>→ ${escapeHtml(x.to)}</small></div><i>›</i></button>`).join(""):`<div class="empty compact">${escapeHtml(t("noRecent"))}</div>`;$("favoritesBody").innerHTML=`<h2>${escapeHtml(t("favoritesTitle"))}</h2><h3 class="subhead">♥</h3>${favHtml}<h3 class="subhead">${escapeHtml(t("recent"))}</h3>${recHtml}`;document.querySelectorAll(".saved-route").forEach(b=>b.onclick=()=>{$("from").value=b.dataset.from;$("to").value=b.dataset.to;$("favoritesModal").classList.add("hidden");document.querySelector('nav a[data-nav="search"]').click();search(true)})}
 
-function setCurrentDateTime() {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth()+1).padStart(2,"0");
-  const d = String(now.getDate()).padStart(2,"0");
-  const h = String(now.getHours()).padStart(2,"0");
-  const min = String(now.getMinutes()).padStart(2,"0");
-  $("date").value = `${y}-${m}-${d}`;
-  $("time").value = `${h}:${min}`;
-}
-
-function applyLanguage() {
-  document.documentElement.lang = currentLang;
-  document.querySelectorAll("[data-i18n]").forEach(el => {
-    const key = el.dataset.i18n;
-    if (I18N[currentLang][key]) el.textContent = I18N[currentLang][key];
-  });
-  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
-    const key = el.dataset.i18nPlaceholder;
-    el.placeholder = t(key);
-  });
-  document.querySelectorAll(".lang").forEach(b => b.classList.toggle("active", b.dataset.lang === currentLang));
-  document.title = `Chiclana · ${t("subtitle")}`;
-  $("date").setAttribute("aria-label", t("date"));
-  $("time").setAttribute("aria-label", t("time"));
-  $("swapBtn").setAttribute("aria-label", `${t("from")} / ${t("to")} tauschen`);
-  $("closeDetail").setAttribute("aria-label", currentLang==="de" ? "Schließen" : currentLang==="es" ? "Cerrar" : "Close");
-  updateQuickTime();
-  search();
-}
-
-function updateQuickTime(){
-  const tv=$("time").value || "--:--";
-  const dv=$("date").value;
-  $("quickTime").textContent=tv;
-  if(dv){ const [y,m,d]=dv.split("-"); $("quickDate").textContent=`${d}.${m}.${y}`; }
-}
-
-function init() {
-  stopNames = [...new Set(DATA.lines.flatMap(l => l.stops))].sort((a,b) => a.localeCompare(b,"de"));
-  setCurrentDateTime();
-  updateQuickTime();
-  setupAutocomplete("from","fromSuggestions");
-  setupAutocomplete("to","toSuggestions");
-
-  document.querySelectorAll(".tabs button").forEach(b => {
-    b.addEventListener("click", () => {
-      document.querySelectorAll(".tabs button").forEach(x => x.classList.remove("active"));
-      b.classList.add("active");
-      activeType = b.dataset.type;
-      search();
-    });
-  });
-
-  ["from","to","date","time"].forEach(id => {
-    $(id).addEventListener("change", () => { updateQuickTime(); search(); });
-  });
-
-  document.querySelectorAll(".lang").forEach(b => {
-    b.addEventListener("click", () => {
-      currentLang = b.dataset.lang;
-      localStorage.setItem("chiclanaLanguage", currentLang);
-      applyLanguage();
-    });
-  });
-
-  $("searchBtn").addEventListener("click", search);
-  $("swapBtn").addEventListener("click", () => {
-    const a = $("from").value; $("from").value = $("to").value; $("to").value = a; search();
-  });
-  $("closeDetail").addEventListener("click", closeDetail);
-  $("closeMore").addEventListener("click", () => $("moreModal").classList.add("hidden"));
-  $("languageRow").addEventListener("click", () => $("languagePanel").classList.toggle("hidden"));
-  $("aboutRow").addEventListener("click", () => $("aboutPanel").classList.toggle("hidden"));
-  document.querySelectorAll("nav a").forEach(a => a.addEventListener("click", () => {
-    const n=a.dataset.nav;
-    if(n === "more") { $("moreModal").classList.remove("hidden"); return; }
-    document.querySelectorAll("nav a").forEach(x=>x.classList.remove("selected")); a.classList.add("selected");
-    if(n === "search") window.scrollTo({top:0,behavior:"smooth"});
-  }));
-  $("moreModal").addEventListener("click", e => { if(e.target === $("moreModal")) $("moreModal").classList.add("hidden"); });
-  $("detail").addEventListener("click", e => { if(e.target === $("detail")) closeDetail(); });
-
-  applyLanguage();
-}
-
-function setupAutocomplete(inputId, suggestionsId) {
-  const input = $(inputId), box = $(suggestionsId);
-  function renderSuggestions() {
-    const q = normalizeText(input.value);
-    const matches = stopNames.filter(name => !q || normalizeText(name).includes(q)).slice(0,8);
-    if (!matches.length) {
-      box.innerHTML = `<div class="no-suggestion">${escapeHtml(t("noStop"))}</div>`;
-      box.classList.remove("hidden"); return;
-    }
-    box.innerHTML = matches.map(name => `<button type="button" class="suggestion">${escapeHtml(name)}</button>`).join("");
-    box.querySelectorAll(".suggestion").forEach(btn => {
-      btn.addEventListener("click", () => { input.value = btn.textContent; box.classList.add("hidden"); search(); });
-    });
-    box.classList.remove("hidden");
-  }
-  input.addEventListener("focus", renderSuggestions);
-  input.addEventListener("input", renderSuggestions);
-  input.addEventListener("keydown", e => { if(e.key==="Escape") box.classList.add("hidden"); });
-  document.addEventListener("click", e => {
-    if(!input.contains(e.target) && !box.contains(e.target)) box.classList.add("hidden");
-  });
-}
-
-function mins(t) { const [h,m]=t.split(":").map(Number); return h*60+m; }
-function fmtDuration(a,b) { let d=mins(b)-mins(a); if(d<0)d+=1440; return `${d} Min.`; }
-
-function findStopIndex(stops, query) {
-  const q = normalizeText(query);
-  if (!q) return -1;
-  const exact = stops.findIndex(s => normalizeText(s) === q);
-  if (exact >= 0) return exact;
-  const prefix = stops.findIndex(s => normalizeText(s).startsWith(q));
-  if (prefix >= 0) return prefix;
-  return stops.findIndex(s => normalizeText(s).includes(q));
-}
-
-function firstPublishedTime(trip) {
-  const i = trip.findIndex(v => v && v !== "--");
-  return i >= 0 ? trip[i] : "--";
-}
-
-function buildConnections(from, to, selectedDate) {
-  const out = [];
-  const requestedFrom = normalizeText(from);
-  const requestedTo = normalizeText(to);
-
-  DATA.lines.forEach(line => {
-    if (activeType !== "all" && line.type !== activeType) return;
-    if (line.validFrom && selectedDate < line.validFrom) return;
-    if (line.validUntil && selectedDate > line.validUntil) return;
-
-    const fi = findStopIndex(line.stops, requestedFrom);
-    const ti = findStopIndex(line.stops, requestedTo);
-    if (fi < 0 || ti < 0 || fi === ti || ti < fi) return;
-
-    line.trips.forEach((trip, idx) => {
-      const originTime = firstPublishedTime(trip);
-      if (originTime === "--") return;
-
-      // Some timetables (especially L-7) publish only the departure at the
-      // first stop. Such a trip is still valid for every later stop on the
-      // same direction. Never invent intermediate times.
-      const boardingTime = trip[fi] && trip[fi] !== "--" ? trip[fi] : "--";
-      const arrivalTime = trip[ti] && trip[ti] !== "--" ? trip[ti] : "--";
-      const sortTime = boardingTime !== "--" ? boardingTime : originTime;
-
-      out.push({
-        line, trip, idx, fi, ti,
-        a: boardingTime,
-        b: arrivalTime,
-        sortTime,
-        originTime,
-        boardingPublished: boardingTime !== "--",
-        arrivalPublished: arrivalTime !== "--"
-      });
-    });
-  });
-
-  out.sort((a,b) => mins(a.sortTime) - mins(b.sortTime));
-  return out;
-}
-
-function search() {
-  if (!DATA) return;
-  const from = $("from").value.trim();
-  const to = $("to").value.trim();
-  const after = mins($("time").value || "00:00");
-  const selectedDate = $("date").value;
-
-  if (!from || !to) {
-    $("count").textContent = "";
-    $("results").innerHTML = `<div class="empty">${escapeHtml(t("chooseStops"))}</div>`;
-    return;
-  }
-
-  const all = buildConnections(from, to, selectedDate);
-  if (!all.length) {
-    $("count").textContent = "";
-    $("results").innerHTML = `<div class="empty">${escapeHtml(t("noConnection"))}</div>`;
-    return;
-  }
-
-  // The first page starts at the current/next trip and contains six trips.
-  // For trips without a published intermediate time (L-7), the published
-  // origin departure is used to decide whether the trip is earlier/later.
-  let pivot = all.findIndex(x => mins(x.sortTime) >= after);
-  if (pivot < 0) pivot = all.length;
-  // Start at the next/current connection. If there is no later connection,
-  // show the final six so that earlier connections can still be reached.
-  const start = pivot >= all.length ? Math.max(0, all.length - 6) : pivot;
-  renderResultsWindow(all, from, to, start);
-}
-
-function renderResultsWindow(all, from, to, pivot) {
-  const pageSize = 6;
-  // Keep the selected/next connection at the top, then five following ones.
-  let startIndex = Math.max(0, Math.min(pivot, Math.max(0, all.length - pageSize)));
-  const visible = all.slice(startIndex, startIndex + pageSize);
-  const endIndex = startIndex + visible.length - 1;
-
-  $("count").textContent = `${all.length} ${t("found")}`;
-
-  const hasEarlier = startIndex > 0;
-  const hasLater = endIndex < all.length - 1;
-
-  const earlierButton = hasEarlier
-    ? `<button type="button" class="connection-nav earlier" id="earlierBtn">‹ ${escapeHtml(t("earlier"))}</button>` : "";
-  const laterButton = hasLater
-    ? `<button type="button" class="connection-nav later" id="laterBtn">${escapeHtml(t("later"))} ›</button>` : "";
-
-  const cards = visible.map(x => {
-    const isL7 = x.line.name === "L-7";
-    // For L-7, intermediate times are not published. Show the published
-    // departure from the line origin instead of a dash, while keeping the
-    // arrival at the requested destination explicitly open.
-    const departure = x.a === "--" ? x.originTime : x.a;
-    const arrival = x.b === "--" ? t("openArrival") : x.b;
-    const dur = x.b === "--" ? t("noPublishedArrival") : fmtDuration(departure, x.b);
-    return `<article class="result ${x.line.type}" data-result-key="${escapeHtml(x.line.name)}-${x.idx}-${x.fi}-${x.ti}">
-      <span class="badge ${x.line.type} ${isL7 ? "l7" : ""}">${x.line.type === "bus" ? "🚌" : "🚋"} ${escapeHtml(x.line.name)}</span>
-      <span class="direction">${escapeHtml(x.line.direction)}</span>
-      <div class="times"><strong>${escapeHtml(departure)} → ${escapeHtml(arrival)}</strong><span class="dur">${escapeHtml(dur)}${x.b === "--" ? "" : "　›"}</span></div>
-      <div class="route-mini">${escapeHtml(from)} → ${escapeHtml(to)}</div>
-    </article>`;
-  }).join("");
-
-  $("results").innerHTML = `${earlierButton}${cards || `<div class="empty">${escapeHtml(t("noConnection"))}</div>`}${laterButton}`;
-
-  document.querySelectorAll(".result").forEach(el => el.addEventListener("click", () => {
-    const key = el.dataset.resultKey;
-    const found = all.find(x => `${x.line.name}-${x.idx}-${x.fi}-${x.ti}` === key);
-    if (found) openDetail(found);
-  }));
-
-  const earlierEl = $("earlierBtn"), laterEl = $("laterBtn");
-  if (earlierEl) earlierEl.addEventListener("click", () => {
-    const newStart = Math.max(0, startIndex - pageSize);
-    renderResultsWindow(all, from, to, newStart);
-    $("results").scrollIntoView({behavior:"smooth", block:"start"});
-  });
-  if (laterEl) laterEl.addEventListener("click", () => {
-    const newStart = Math.min(Math.max(0, all.length - pageSize), startIndex + pageSize);
-    renderResultsWindow(all, from, to, newStart);
-    $("results").scrollIntoView({behavior:"smooth", block:"start"});
-  });
-}
-
-function openDetail(x) {
-  const l=x.line;
-  const visible=l.stops.map((name,i)=>{
-    const personal=i===x.fi || i===x.ti, start=i===0, end=i===l.stops.length-1, time=x.trip[i];
-    return `<div class="stop ${personal?"personal":""} ${start?"start":""} ${end?"end":""} ${time==="--"?"no-time":""}">
-      <div class="time">${time==="--"?"":escapeHtml(time)}</div><div class="dot"></div>
-      <div class="name">${escapeHtml(name)} ${personal?`<span class="tag">${i===x.fi?t("yourBoarding"):t("yourDestination")}</span>`:""}</div>
-    </div>`;
-  }).join("");
-  $("detailBody").innerHTML=`<div class="detail-head"><span class="badge ${l.type} ${l.name==="L-7"?"l7":""}">${l.type==="bus"?"🚌":"🚋"} ${escapeHtml(l.name)}</span><div>${escapeHtml(l.direction)}</div></div>
-  <div class="summary"><div><strong>${x.a === "--" ? "—" : escapeHtml(x.a)}</strong><br><span>${escapeHtml(t("yourBoarding"))}<br>${escapeHtml(l.stops[x.fi])}</span></div>
-  <div>${x.a==="--" || x.b==="--" ? escapeHtml(t("noPublishedArrival")) : escapeHtml(fmtDuration(x.a,x.b))}</div>
-  <div style="text-align:right"><strong>${x.b==="--"?escapeHtml(t("openArrival")):escapeHtml(x.b)}</strong><br><span>${escapeHtml(t("yourDestination"))}<br>${escapeHtml(l.stops[x.ti])}</span></div></div>
-  <div class="timeline">${visible}</div>
-  <div class="note">${escapeHtml(t("validFrom"))} ${new Date(l.validFrom+"T00:00:00").toLocaleDateString(currentLang==="de"?"de-DE":currentLang==="es"?"es-ES":"en-GB")} ${escapeHtml(t("until"))} ${new Date(l.validUntil+"T00:00:00").toLocaleDateString(currentLang==="de"?"de-DE":currentLang==="es"?"es-ES":"en-GB")}.</div>`;
-  $("detail").classList.remove("hidden");
-}
-function closeDetail(){ $("detail").classList.add("hidden"); }
+function openLines(){$("linesModal").classList.remove("hidden");renderLines();renderStopSearch()}
+function renderLines(){const grouped=[...new Map(DATA.lines.map(l=>[l.name,l])).values()];const html=grouped.map(l=>{const same=DATA.lines.filter(x=>x.name===l.name),seasonal=same.some(x=>x.validUntil&&todayISO()>x.validUntil);const dirs=same.map(x=>x.direction).join(" · ");return `<button class="line-card" data-line="${escapeHtml(l.name)}"><span class="badge ${l.type} ${l.name==="L-7"?"l7":""}">${l.type==="bus"?"🚌":"🚋"} ${escapeHtml(l.name)}</span><b>${escapeHtml(dirs)}</b><small>${escapeHtml(t("season"))}: ${seasonal?escapeHtml(t("outside")):escapeHtml(t("active"))} · ${l.stops.length} ${currentLang==="de"?"Haltestellen":currentLang==="es"?"paradas":"stops"}</small></button>`}).join("");$("linesBody").querySelector("#lineList").innerHTML=html;document.querySelectorAll(".line-card").forEach(b=>b.onclick=()=>showLineDetail(b.dataset.line))}
+function renderStopSearch(){const q=normalizeText($("stopSearch").value);const m=stopNames.filter(n=>!q||normalizeText(n).includes(q)).slice(0,10);$("stopResults").innerHTML=m.map(s=>{const lines=DATA.lines.filter(l=>findStopIndex(l.stops,s)>=0);return `<div class="stop-search-row"><div><b>${escapeHtml(s)}</b><small>${escapeHtml(t("stopLines"))}</small></div><div class="line-pills">${lines.map(l=>`<span class="mini-pill ${l.name==="L-7"?"l7-pill":l.type}">${escapeHtml(l.name)}</span>`).join("")}</div></div>`}).join("")||`<div class="empty compact">${escapeHtml(t("noStop"))}</div>`}
+function showLineDetail(id){const ls=DATA.lines.filter(x=>x.name===id);const l=ls[0];if(!l)return;const blocks=ls.map((line,di)=>{const stops=line.stops.map((s,i)=>`<div class="line-stop"><span>${i+1}</span><b>${escapeHtml(s)}</b></div>`).join("");return `<div class="line-direction-block"><h4>${escapeHtml(line.direction)}</h4><div class="line-stops">${stops}</div></div>`}).join("");$("lineDetail").innerHTML=`<button type="button" class="back-btn" id="backLines">‹ ${escapeHtml(t("back"))}</button><div class="line-detail-head"><span class="badge ${l.type} ${l.name==="L-7"?"l7":""}">${l.type==="bus"?"🚌":"🚋"} ${escapeHtml(l.name)}</span><h3>${escapeHtml(t("linesTitle"))}</h3></div>${blocks}`;$("lineListPanel").classList.add("hidden");$("lineDetail").classList.remove("hidden");$("backLines").onclick=()=>{$("lineDetail").classList.add("hidden");$("lineListPanel").classList.remove("hidden")}}
