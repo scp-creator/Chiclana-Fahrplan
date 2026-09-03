@@ -1,6 +1,10 @@
 
 let DATA, activeType = "bus", stopNames = [];
 
+function normalizeText(s) {
+  return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+}
+
 const $ = id => document.getElementById(id);
 
 fetch("data.json")
@@ -59,11 +63,11 @@ function setupAutocomplete(inputId, suggestionsId) {
   const box = $(suggestionsId);
 
   function renderSuggestions() {
-    const q = input.value.trim().toLowerCase();
+    const q = normalizeText(input.value);
 
     // Empty field: show all available stops. While typing: show matching stops.
     const matches = stopNames
-      .filter(name => !q || name.toLowerCase().includes(q))
+      .filter(name => !q || normalizeText(name).includes(q))
       .slice(0, 8);
 
     if (!matches.length) {
@@ -145,8 +149,10 @@ function search() {
     .filter(l => !l.validUntil || selectedDate <= l.validUntil);
 
   activeLines.forEach(line => {
-    const fi = line.stops.findIndex(s => s.toLowerCase() === from.toLowerCase());
-    const ti = line.stops.findIndex(s => s.toLowerCase() === to.toLowerCase());
+    const nfrom = normalizeText(from);
+    const nto = normalizeText(to);
+    const fi = line.stops.findIndex(s => normalizeText(s) === nfrom);
+    const ti = line.stops.findIndex(s => normalizeText(s) === nto);
 
     if (fi < 0 || ti < 0 || ti <= fi) return;
 
