@@ -150,8 +150,11 @@ function search() {
 
   let arr = [];
 
+  const selectedDate = $("date").value;
   DATA.lines
     .filter(l => activeType === "all" || l.type === activeType)
+    .filter(l => !l.validFrom || selectedDate >= l.validFrom)
+    .filter(l => !l.validUntil || selectedDate <= l.validUntil)
     .forEach(line => {
       const fi = line.stops.findIndex(s => s.toLowerCase() === from.toLowerCase());
       const ti = line.stops.findIndex(s => s.toLowerCase() === to.toLowerCase());
@@ -184,15 +187,14 @@ function search() {
 function openDetail(x) {
   const l = x.line;
   const stops = l.stops
-    .map((name,i) => ({name,time:x.trip[i],i}))
-    .filter(s => s.time !== "--");
+    .map((name,i) => ({name,time:x.trip[i],i}));
 
   const visible = stops.map(s => {
     const personal = s.i === x.fi || s.i === x.ti;
     const start = s.i === 0, end = s.i === l.stops.length-1;
 
-    return `<div class="stop ${personal?"personal":""} ${start?"start":""} ${end?"end":""}">
-      <div class="time">${s.time}</div>
+    return `<div class="stop ${personal?"personal":""} ${start?"start":""} ${end?"end":""} ${s.time === "--" ? "no-time" : ""}">
+      <div class="time">${s.time === "--" ? "" : s.time}</div>
       <div class="dot"></div>
       <div class="name">${escapeHtml(s.name)}
         ${personal ? `<span class="tag">${s.i===x.fi?"Dein Einstieg":"Dein Ziel"}</span>` : ""}
@@ -212,8 +214,7 @@ function openDetail(x) {
     </div>
     <div class="timeline">${visible}</div>
     <div class="note">
-      Fahrplan gültig ab ${new Date(l.validFrom).toLocaleDateString("de-DE")}.<br>
-      Die vollständige Tabellenübernahme wird mit weiteren Fahrplandaten ergänzt.
+      Fahrplan gültig vom ${new Date(l.validFrom).toLocaleDateString("de-DE")} bis ${new Date(l.validUntil).toLocaleDateString("de-DE")}.
     </div>`;
   $("detail").classList.remove("hidden");
 }

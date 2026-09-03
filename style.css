@@ -49,3 +49,6 @@ nav a{text-align:center;padding-top:10px;color:#777;font-size:22px}nav a.selecte
 .tag{display:inline-block;margin-left:6px;padding:3px 7px;border-radius:6px;background:#fff0b5;font-size:11px;font-weight:700}
 .note{color:#777;font-size:12px;margin-top:16px}
 @media(min-width:700px){body{padding-top:10px}}
+
+/* L-7: keine erfundenen Zwischenzeiten anzeigen */
+.stop.no-time .time { visibility: hidden; }
