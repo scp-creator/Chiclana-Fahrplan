@@ -10,13 +10,26 @@ fetch("data.json")
     init();
   });
 
+function setCurrentDateTime() {
+  const now = new Date();
+
+  // Lokales Datum und lokale Uhrzeit des iPhones verwenden.
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+
+  $("date").value = `${year}-${month}-${day}`;
+  $("time").value = `${hours}:${minutes}`;
+}
+
 function init() {
   stopNames = [...new Set(DATA.lines.flatMap(l => l.stops))].sort((a,b) =>
     a.localeCompare(b, "de")
   );
 
-  const now = new Date();
-  $("date").value = now.toISOString().slice(0,10);
+  setCurrentDateTime();
 
   setupAutocomplete("from", "fromSuggestions");
   setupAutocomplete("to", "toSuggestions");
@@ -109,7 +122,7 @@ function search() {
 
   const from = $("from").value.trim();
   const to = $("to").value.trim();
-  const after = mins($("time").value || "00:00");
+  const after = mins($("time").value || "00:00"); // Verbindungen ab dieser Uhrzeit
 
   // Until both stops are selected/entered, don't show fake connections.
   if (!from || !to) {
