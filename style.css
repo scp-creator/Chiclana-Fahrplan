@@ -116,7 +116,7 @@ nav a.selected{color:var(--teal)}nav small{font-size:12px;margin-top:5px}
 /* V20 – responsive one-screen layout: scale the visual hierarchy to the device viewport */
 html, body { min-height: 100%; }
 body { min-height: 100svh; overflow-x:hidden; }
-.app { min-height:100svh; height:100svh; padding-bottom:76px; overflow:hidden; }
+.app { min-height:100svh; height:auto; padding-bottom:96px; overflow:visible; }
 .hero { height:clamp(220px, 34svh, 310px); }
 .hero-copy { left:clamp(20px, 6vw, 42px); top:clamp(18px, 3.5svh, 28px); }
 .hero-title { font-size:clamp(34px, 5.6svh, 45px); }
@@ -174,7 +174,7 @@ nav { height:76px; }
   nav { height:68px; }
   nav a { font-size:27px; padding-top:5px; }
   nav small { font-size:10px; margin-top:3px; }
-  .app { padding-bottom:68px; }
+  .app { padding-bottom:88px; }
 }
 
 /* Very narrow Android screens */

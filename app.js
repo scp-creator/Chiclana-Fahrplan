@@ -191,47 +191,56 @@ function fmtDuration(a,b) { let d=mins(b)-mins(a); if(d<0)d+=1440; return `${d} 
 function findStopIndex(stops, query) {
   const q = normalizeText(query);
   if (!q) return -1;
-  // Exact match first, then a flexible prefix/contains match.
-  let i = stops.findIndex(s => normalizeText(s) === q);
-  if (i >= 0) return i;
-  i = stops.findIndex(s => normalizeText(s).startsWith(q));
-  if (i >= 0) return i;
+  const exact = stops.findIndex(s => normalizeText(s) === q);
+  if (exact >= 0) return exact;
+  const prefix = stops.findIndex(s => normalizeText(s).startsWith(q));
+  if (prefix >= 0) return prefix;
   return stops.findIndex(s => normalizeText(s).includes(q));
+}
+
+function firstPublishedTime(trip) {
+  const i = trip.findIndex(v => v && v !== "--");
+  return i >= 0 ? trip[i] : "--";
 }
 
 function buildConnections(from, to, selectedDate) {
   const out = [];
-  DATA.lines
-    .filter(l => activeType === "all" || l.type === activeType)
-    .filter(l => !l.validFrom || selectedDate >= l.validFrom)
-    .filter(l => !l.validUntil || selectedDate <= l.validUntil)
-    .forEach(line => {
-      const fi = findStopIndex(line.stops, from);
-      const ti = findStopIndex(line.stops, to);
-      if (fi < 0 || ti < 0 || fi === ti || ti < fi) return;
+  const requestedFrom = normalizeText(from);
+  const requestedTo = normalizeText(to);
 
-      line.trips.forEach((trip, idx) => {
-        // Keep the published times exactly as supplied. Never invent a time
-        // for an intermediate stop. If a timetable does not publish a time
-        // at the selected boarding stop (notably L-7), the trip is still a
-        // valid route and can be shown with an open boarding time.
-        const boardingTime = trip[fi] && trip[fi] !== "--" ? trip[fi] : "--";
-        const arrivalTime = trip[ti] && trip[ti] !== "--" ? trip[ti] : "--";
-        const originTime = trip.find(v => v && v !== "--") || "--";
-        if (originTime === "--") return;
+  DATA.lines.forEach(line => {
+    if (activeType !== "all" && line.type !== activeType) return;
+    if (line.validFrom && selectedDate < line.validFrom) return;
+    if (line.validUntil && selectedDate > line.validUntil) return;
 
-        out.push({
-          line, trip, idx, fi, ti,
-          a: boardingTime,
-          b: arrivalTime,
-          sortTime: boardingTime !== "--" ? boardingTime : originTime,
-          originTime,
-          boardingPublished: boardingTime !== "--",
-          arrivalPublished: arrivalTime !== "--"
-        });
+    const fi = findStopIndex(line.stops, requestedFrom);
+    const ti = findStopIndex(line.stops, requestedTo);
+    if (fi < 0 || ti < 0 || fi === ti || ti < fi) return;
+
+    line.trips.forEach((trip, idx) => {
+      const originTime = firstPublishedTime(trip);
+      if (originTime === "--") return;
+
+      // Some timetables (especially L-7) publish only the departure at the
+      // first stop. Such a trip is still valid for every later stop on the
+      // same direction. Never invent intermediate times.
+      const boardingTime = trip[fi] && trip[fi] !== "--" ? trip[fi] : "--";
+      const arrivalTime = trip[ti] && trip[ti] !== "--" ? trip[ti] : "--";
+      const sortTime = boardingTime !== "--" ? boardingTime : originTime;
+
+      out.push({
+        line, trip, idx, fi, ti,
+        a: boardingTime,
+        b: arrivalTime,
+        sortTime,
+        originTime,
+        boardingPublished: boardingTime !== "--",
+        arrivalPublished: arrivalTime !== "--"
       });
     });
-  out.sort((x, y) => mins(x.sortTime) - mins(y.sortTime));
+  });
+
+  out.sort((a,b) => mins(a.sortTime) - mins(b.sortTime));
   return out;
 }
 
@@ -241,6 +250,7 @@ function search() {
   const to = $("to").value.trim();
   const after = mins($("time").value || "00:00");
   const selectedDate = $("date").value;
+
   if (!from || !to) {
     $("count").textContent = "";
     $("results").innerHTML = `<div class="empty">${escapeHtml(t("chooseStops"))}</div>`;
@@ -254,28 +264,30 @@ function search() {
     return;
   }
 
-  // Show the next/current connection plus five following connections.
-  // If the boarding time is not published, use the first published trip
-  // time only for ordering; the card itself clearly shows the open time.
+  // The first page starts at the current/next trip and contains six trips.
+  // For trips without a published intermediate time (L-7), the published
+  // origin departure is used to decide whether the trip is earlier/later.
   let pivot = all.findIndex(x => mins(x.sortTime) >= after);
-  if (pivot < 0) pivot = Math.max(0, all.length - 6);
+  if (pivot < 0) pivot = Math.max(0, all.length - 1);
   renderResultsWindow(all, from, to, pivot);
 }
 
-function renderResultsWindow(all, from, to, startIndex) {
-  const visible = all.slice(startIndex, startIndex + 6);
+function renderResultsWindow(all, from, to, pivot) {
+  const pageSize = 6;
+  // Keep the selected/next connection at the top, then five following ones.
+  let startIndex = Math.max(0, Math.min(pivot, Math.max(0, all.length - pageSize)));
+  const visible = all.slice(startIndex, startIndex + pageSize);
   const endIndex = startIndex + visible.length - 1;
-  $("count").textContent = all.length ? `${all.length} ${t("found")}` : "";
+
+  $("count").textContent = `${all.length} ${t("found")}`;
 
   const hasEarlier = startIndex > 0;
-  const hasLater = endIndex >= 0 && endIndex < all.length - 1;
+  const hasLater = endIndex < all.length - 1;
 
   const earlierButton = hasEarlier
-    ? `<button type="button" class="connection-nav earlier" id="earlierBtn">‹ ${escapeHtml(t("earlier"))}</button>`
-    : "";
+    ? `<button type="button" class="connection-nav earlier" id="earlierBtn">‹ ${escapeHtml(t("earlier"))}</button>` : "";
   const laterButton = hasLater
-    ? `<button type="button" class="connection-nav later" id="laterBtn">${escapeHtml(t("later"))} ›</button>`
-    : "";
+    ? `<button type="button" class="connection-nav later" id="laterBtn">${escapeHtml(t("later"))} ›</button>` : "";
 
   const cards = visible.map(x => {
     const isL7 = x.line.name === "L-7";
@@ -299,20 +311,16 @@ function renderResultsWindow(all, from, to, startIndex) {
   }));
 
   const earlierEl = $("earlierBtn"), laterEl = $("laterBtn");
-  if (earlierEl) {
-    earlierEl.addEventListener("click", () => {
-      const newStart = Math.max(0, startIndex - 6);
-      renderResultsWindow(all, from, to, newStart);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
-  }
-  if (laterEl) {
-    laterEl.addEventListener("click", () => {
-      const newStart = Math.min(Math.max(0, all.length - 6), startIndex + 6);
-      renderResultsWindow(all, from, to, newStart);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
-  }
+  if (earlierEl) earlierEl.addEventListener("click", () => {
+    const newStart = Math.max(0, startIndex - pageSize);
+    renderResultsWindow(all, from, to, newStart);
+    $("results").scrollIntoView({behavior:"smooth", block:"start"});
+  });
+  if (laterEl) laterEl.addEventListener("click", () => {
+    const newStart = Math.min(Math.max(0, all.length - pageSize), startIndex + pageSize);
+    renderResultsWindow(all, from, to, newStart);
+    $("results").scrollIntoView({behavior:"smooth", block:"start"});
+  });
 }
 
 function openDetail(x) {
