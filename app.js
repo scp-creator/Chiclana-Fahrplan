@@ -268,8 +268,11 @@ function search() {
   // For trips without a published intermediate time (L-7), the published
   // origin departure is used to decide whether the trip is earlier/later.
   let pivot = all.findIndex(x => mins(x.sortTime) >= after);
-  if (pivot < 0) pivot = Math.max(0, all.length - 1);
-  renderResultsWindow(all, from, to, pivot);
+  if (pivot < 0) pivot = all.length;
+  // Start at the next/current connection. If there is no later connection,
+  // show the final six so that earlier connections can still be reached.
+  const start = pivot >= all.length ? Math.max(0, all.length - 6) : pivot;
+  renderResultsWindow(all, from, to, start);
 }
 
 function renderResultsWindow(all, from, to, pivot) {
@@ -291,9 +294,12 @@ function renderResultsWindow(all, from, to, pivot) {
 
   const cards = visible.map(x => {
     const isL7 = x.line.name === "L-7";
-    const departure = x.a === "--" ? "—" : x.a;
+    // For L-7, intermediate times are not published. Show the published
+    // departure from the line origin instead of a dash, while keeping the
+    // arrival at the requested destination explicitly open.
+    const departure = x.a === "--" ? x.originTime : x.a;
     const arrival = x.b === "--" ? t("openArrival") : x.b;
-    const dur = x.a === "--" || x.b === "--" ? t("noPublishedArrival") : fmtDuration(x.a, x.b);
+    const dur = x.b === "--" ? t("noPublishedArrival") : fmtDuration(departure, x.b);
     return `<article class="result ${x.line.type}" data-result-key="${escapeHtml(x.line.name)}-${x.idx}-${x.fi}-${x.ti}">
       <span class="badge ${x.line.type} ${isL7 ? "l7" : ""}">${x.line.type === "bus" ? "🚌" : "🚋"} ${escapeHtml(x.line.name)}</span>
       <span class="direction">${escapeHtml(x.line.direction)}</span>
