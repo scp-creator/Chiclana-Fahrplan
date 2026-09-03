@@ -16,3 +16,12 @@ Wichtig:
 - L-7 veröffentlicht keine Zwischenzeiten. Wenn von einer Zwischenhaltestelle gesucht wird, zeigt die App die veröffentlichte Startzeit der Linie an und kennzeichnet sie als „Startzeit ab …“. Es wird keine Zwischenzeit erfunden.
 - Die App bleibt eine statische PWA und funktioniert mit GitHub Pages.
 - Daten liegen in data.json.
+
+HEADERBILD / BILDNACHWEIS
+Das Headerbild wird aus Wikimedia Commons geladen:
+„Playa de la Barrosa - Castillo de Sancti Petri.JPG“
+Foto: Pablo Jones (Peejayem), aufgenommen am 29. Juli 2007.
+Quelle: https://commons.wikimedia.org/wiki/File:Playa_de_la_Barrosa_-_Castillo_de_Sancti_Petri.JPG
+Lizenz: Creative Commons Attribution-ShareAlike 2.5 Spain (CC BY-SA 2.5 ES)
+Lizenztext: https://creativecommons.org/licenses/by-sa/2.5/es/
+Für die Darstellung in der App wird das Bild zugeschnitten.

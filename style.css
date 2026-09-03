@@ -7,7 +7,7 @@ body{margin:0;background:#eef5f4;font-family:-apple-system,BlinkMacSystemFont,"S
 .hero-copy{position:absolute;z-index:3;left:30px;top:28px}
 .hero-title{font-size:43px;line-height:1;font-weight:850;letter-spacing:-1.8px}
 .hero-subtitle{font-size:23px;color:#758397;margin-top:8px;font-weight:500}
-.hero-photo{position:absolute;left:0;right:0;top:128px;height:255px;background:url("chiclana-castillo.jpg") center/cover no-repeat}
+.hero-photo{position:absolute;left:0;right:0;top:128px;height:255px;background:url("https://upload.wikimedia.org/wikipedia/commons/9/92/Playa_de_la_Barrosa_-_Castillo_de_Sancti_Petri.JPG") center/cover no-repeat}
 .hero-fade{position:absolute;z-index:2;left:0;right:0;top:105px;height:275px;background:linear-gradient(180deg,rgba(238,248,248,1) 0%,rgba(238,248,248,.88) 11%,rgba(238,248,248,.15) 36%,rgba(238,248,248,0) 55%,rgba(249,246,238,.88) 96%,#f9f6ee 100%)}
 main{padding:0 18px 20px;margin-top:-8px;position:relative;z-index:4}
 .route-stack{position:relative}
@@ -77,7 +77,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Ne
 .hero-copy{left:42px;top:28px;z-index:4}
 .hero-title{font-size:45px;line-height:1.02;font-weight:800;letter-spacing:-2px}
 .hero-subtitle{font-size:25px;color:#68717b;margin-top:10px;font-weight:600}
-.hero-photo{top:125px;height:420px;background-image:url("chiclana-castillo.jpg");background-position:center 48%;background-size:cover}
+.hero-photo{top:125px;height:420px;background-image:url("https://upload.wikimedia.org/wikipedia/commons/9/92/Playa_de_la_Barrosa_-_Castillo_de_Sancti_Petri.JPG");background-position:center 48%;background-size:cover}
 .hero-fade{top:112px;height:455px;background:linear-gradient(180deg,rgba(255,255,255,.96) 0%,rgba(255,255,255,.02) 24%,rgba(255,255,255,0) 58%,rgba(255,255,255,.88) 88%,#fff 100%)}
 main{padding:0 43px 24px;margin-top:-13px;z-index:5}
 .route-field{min-height:116px;padding:22px 24px 16px;border:0;border-radius:23px;box-shadow:0 4px 16px rgba(0,0,0,.07);background:#fff}
@@ -240,3 +240,15 @@ html[data-theme="dark"] body{background:#101719;color:#edf5f5}html[data-theme="d
 @media(max-width:380px){.now-btn{font-size:11px;padding:7px}.fav-btn{width:32px;height:32px;font-size:19px}.map-stop{flex-basis:95px}.map-stop:not(:last-child)::after{width:95px}}
 .line-direction-block{margin:12px 0 20px}.line-direction-block h4{font-size:14px;margin:10px 8px;color:#59666f}
 html[data-theme="dark"] .line-direction-block h4{color:#aab8bc}
+
+
+/* V27 – cleaner initial state and modern swap control */
+.swap-btn{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;border:1px solid #d9e1e4;background:rgba(255,255,255,.98);color:#167583;box-shadow:0 5px 18px rgba(20,50,60,.10);font-size:0}
+.swap-btn svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.swap-btn:active{transform:scale(.96);background:#f5faf9}
+.now-btn{display:none}
+.now-btn.ready{display:block}
+.quick-time{display:none!important}
+@media (max-height:720px){.swap-btn{width:43px;height:43px}.swap-btn svg{width:21px;height:21px}}
+.credit-links{font-size:13px;line-height:1.5;margin-top:8px}
+.credit-links a{color:var(--teal);text-decoration:underline;text-underline-offset:2px}

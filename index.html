@@ -32,7 +32,9 @@
         <input id="from" autocomplete="off" placeholder="Haltestelle eingeben oder wählen" data-i18n-placeholder="stopPlaceholder">
         <div id="fromSuggestions" class="suggestions hidden"></div>
       </div>
-      <button id="swapBtn" class="swap-btn" type="button" aria-label="Von und Nach tauschen">↕</button>
+      <button id="swapBtn" class="swap-btn" type="button" aria-label="Von und Nach tauschen" title="Von und Nach tauschen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v13m0 0-4-4m4 4 4-4M16 20V7m0 0-4 4m4-4 4 4"/></svg>
+      </button>
       <div class="route-field autocomplete">
         <label for="to" data-i18n="to">Nach</label>
         <input id="to" autocomplete="off" placeholder="Haltestelle eingeben oder wählen" data-i18n-placeholder="stopPlaceholder">
@@ -93,7 +95,8 @@
     <div id="aboutPanel" class="about-panel hidden">
       <h3>Chiclana Fahrplan</h3>
       <p><b data-i18n="imageCreditTitle">Bildnachweis</b></p>
-      <p data-i18n="imageCreditText">Headerbild: Castillo de Sancti Petri bei Sonnenuntergang. Quelle und Lizenz bitte gemäß Originalquelle des verwendeten Fotos beachten.</p>
+      <p data-i18n="imageCreditText">Headerbild: „Playa de la Barrosa - Castillo de Sancti Petri“, Foto: Pablo Jones (Peejayem), aufgenommen am 29. Juli 2007. Quelle: Wikimedia Commons. Lizenz: Creative Commons Namensnennung – Weitergabe unter gleichen Bedingungen 2.5 Spanien (CC BY-SA 2.5 ES). Für die Darstellung in dieser App wurde das Bild zugeschnitten.</p>
+      <p class="credit-links"><a href="https://commons.wikimedia.org/wiki/File:Playa_de_la_Barrosa_-_Castillo_de_Sancti_Petri.JPG" target="_blank" rel="noopener noreferrer">Wikimedia Commons – Originalquelle</a><br><a href="https://creativecommons.org/licenses/by-sa/2.5/es/" target="_blank" rel="noopener noreferrer">CC BY-SA 2.5 ES – Lizenztext</a></p>
     </div>
   </div>
 </div>
