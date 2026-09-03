@@ -1,6 +1,6 @@
-Chiclana Fahrplan – V29
+Chiclana Fahrplan – V30
 
-V29 enthält die bisherigen Fahrplandaten und Erweiterungen:
+V30 enthält die bisherigen Fahrplandaten und Erweiterungen:
 - Favoriten
 - Letzte Suchen
 - Linienübersicht und Haltestellen-Suche
