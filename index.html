@@ -3,61 +3,78 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#f7fbfa">
 <link rel="manifest" href="manifest.webmanifest">
 <title>Chiclana Fahrplan</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="app">
-  <header>
-    <div class="title">Verbindung suchen</div>
-    <div class="sliders">☷</div>
+  <header class="hero">
+    <div class="hero-copy">
+      <div class="hero-title">Chiclana</div>
+      <div class="hero-subtitle" data-i18n="subtitle">Fahrplan</div>
+    </div>
+    <div class="hero-photo" aria-label="Castillo de Sancti Petri bei Sonnenuntergang"></div>
+    <div class="hero-fade"></div>
   </header>
 
   <main>
-    <section class="route-card">
-      <div class="autocomplete">
-        <label for="from">Von</label>
-        <input id="from" autocomplete="off" placeholder="Haltestelle eingeben oder wählen">
+    <section class="route-stack">
+      <div class="route-field autocomplete">
+        <label for="from" data-i18n="from">Von</label>
+        <input id="from" autocomplete="off" placeholder="Haltestelle eingeben oder wählen" data-i18n-placeholder="stopPlaceholder">
         <div id="fromSuggestions" class="suggestions hidden"></div>
       </div>
-      <div class="route-line"></div>
-      <div class="autocomplete">
-        <label for="to">Nach</label>
-        <input id="to" autocomplete="off" placeholder="Haltestelle eingeben oder wählen">
+
+      <button id="swapBtn" class="swap-btn" type="button" aria-label="Von und Nach tauschen">↕</button>
+
+      <div class="route-field autocomplete">
+        <label for="to" data-i18n="to">Nach</label>
+        <input id="to" autocomplete="off" placeholder="Haltestelle eingeben oder wählen" data-i18n-placeholder="stopPlaceholder">
         <div id="toSuggestions" class="suggestions hidden"></div>
       </div>
     </section>
 
     <section class="controls">
-      <label class="field">📅 <span>Datum<input id="date" type="date"></span></label>
-      <label class="field">🕐 <span>Ab<input id="time" type="time" aria-label="Uhrzeit"></span></label>
+      <label class="field">📅 <span><span data-i18n="date">Datum</span><input id="date" type="date"></span></label>
+      <label class="field">🕐 <span><span data-i18n="time">Uhrzeit</span><input id="time" type="time" aria-label="Uhrzeit"></span></label>
     </section>
 
     <div class="tabs">
-      <button data-type="bus" class="active bus">🚌 Bus</button>
-      <button data-type="tram" class="tram">🚋 Tranvía</button>
-      <button data-type="all">Beide</button>
+      <button data-type="bus" class="active bus">🚌 <span data-i18n="bus">Bus</span></button>
+      <button data-type="tram" class="tram">🚋 <span data-i18n="tram">Tram</span></button>
+      <button data-type="all" class="all"><span data-i18n="both">Beide</span></button>
     </div>
 
+    <button id="searchBtn" class="search-btn" type="button">🔎 <span data-i18n="search">Verbindungen suchen</span></button>
+
+    <section class="language-box">
+      <div class="language-label" data-i18n="language">Sprache</div>
+      <div class="language-switch" role="group" aria-label="Sprache">
+        <button type="button" data-lang="de" class="lang active">🇩🇪 Deutsch</button>
+        <button type="button" data-lang="es" class="lang">🇪🇸 Español</button>
+        <button type="button" data-lang="en" class="lang">🇬🇧 English</button>
+      </div>
+    </section>
+
     <div class="section-head">
-      <b>Verfügbare Verbindungen</b><span id="count"></span>
+      <b data-i18n="available">Verfügbare Verbindungen</b><span id="count"></span>
     </div>
     <div id="results"></div>
   </main>
 
   <nav>
-    <a class="selected">⌕<small>Suchen</small></a>
-    <a>★<small>Favoriten</small></a>
-    <a>▣<small>Linien</small></a>
-    <a>•••<small>Mehr</small></a>
+    <a class="selected">⌕<small data-i18n="navSearch">Suchen</small></a>
+    <a>♡<small data-i18n="navFavorites">Favoriten</small></a>
+    <a>♧<small data-i18n="navLines">Linien</small></a>
+    <a>•••<small data-i18n="navMore">Mehr</small></a>
   </nav>
 </div>
 
 <div id="detail" class="modal hidden">
   <div class="sheet">
-    <button class="close" onclick="closeDetail()">‹</button>
+    <button id="closeDetail" class="close" type="button" aria-label="Schließen">‹</button>
     <div id="detailBody"></div>
   </div>
 </div>
