@@ -112,3 +112,75 @@ nav a.selected{color:var(--teal)}nav small{font-size:12px;margin-top:5px}
 .language-box{padding:12px 8px 4px}.language-switch{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.lang{border:1px solid #d9e1e2;border-radius:12px;background:#fff;padding:10px 4px;font-size:12px;font-weight:750;color:#334155}.lang.active{background:#e7f4f3;border-color:#167583;color:#125e68}
 .about-panel{margin:12px 8px 4px;padding:15px;border:1px solid #e3e5e5;border-radius:16px;background:#fafafa;font-size:13px;line-height:1.45}.about-panel h3{margin:0 0 10px;font-size:18px}.about-panel p{margin:7px 0}
 @media(max-width:380px){main{padding-left:20px;padding-right:20px}.hero-copy{left:24px}.hero-title{font-size:40px}.hero{height:500px}.hero-photo{height:380px}}
+
+/* V20 – responsive one-screen layout: scale the visual hierarchy to the device viewport */
+html, body { min-height: 100%; }
+body { min-height: 100svh; overflow-x:hidden; }
+.app { min-height:100svh; height:100svh; padding-bottom:76px; overflow:hidden; }
+.hero { height:clamp(220px, 34svh, 310px); }
+.hero-copy { left:clamp(20px, 6vw, 42px); top:clamp(18px, 3.5svh, 28px); }
+.hero-title { font-size:clamp(34px, 5.6svh, 45px); }
+.hero-subtitle { font-size:clamp(19px, 3.1svh, 25px); margin-top:5px; }
+.hero-photo { top:clamp(92px, 15svh, 125px); height:clamp(170px, 25svh, 230px); background-position:center center; }
+.hero-fade { top:clamp(82px, 13.5svh, 112px); height:clamp(185px, 28svh, 250px); }
+main { padding:0 clamp(18px, 5vw, 43px) 10px; margin-top:clamp(-10px, -1.5svh, -5px); }
+.route-field { min-height:clamp(66px, 10svh, 86px); padding:clamp(11px, 1.7svh, 17px) 18px 10px; border-radius:20px; }
+.route-field + .route-field { margin-top:clamp(8px, 1.3svh, 12px); }
+.route-field label { font-size:12px; margin-bottom:3px; }
+.route-field input { font-size:clamp(18px, 2.7svh, 22px); }
+.swap-btn { top:clamp(53px, 8.5svh, 70px); width:48px; height:48px; font-size:26px; right:0; }
+.controls { margin-top:clamp(8px, 1.3svh, 12px); gap:8px; }
+.field { min-height:42px; padding:6px 9px; border-radius:12px; }
+.field span { font-size:9px; }
+.field input { font-size:13px; }
+.tabs { grid-template-columns:repeat(3,1fr); gap:7px; margin:clamp(8px, 1.3svh, 12px) 0; }
+.tabs button, .tabs button.all { grid-column:auto; min-height:44px; padding:9px 5px; border-radius:13px; font-size:clamp(13px, 2.1svh, 17px); }
+.search-btn { min-height:46px; padding:10px; border-radius:14px; font-size:clamp(15px, 2.4svh, 19px); }
+.quick-time { display:none; }
+.section-head { margin:clamp(8px, 1.3svh, 14px) 4px 6px; font-size:13px; }
+.result { margin:7px 0; padding:11px 12px; border-radius:17px; }
+.badge { font-size:13px; padding:4px 8px; }
+.badge.l7 { padding:3px 9px; }
+.times { margin-top:6px; gap:6px; }
+.times strong { font-size:clamp(20px, 3.2svh, 26px); }
+.route-mini { font-size:12px; margin-top:4px; }
+.dur { font-size:11px; }
+nav { height:76px; }
+
+/* Short phones: keep every primary control visible without page scrolling. */
+@media (max-height: 720px) {
+  .hero { height:220px; }
+  .hero-copy { top:15px; }
+  .hero-title { font-size:34px; }
+  .hero-subtitle { font-size:18px; margin-top:3px; }
+  .hero-photo { top:78px; height:160px; }
+  .hero-fade { top:70px; height:175px; }
+  main { padding-left:16px; padding-right:16px; }
+  .route-field { min-height:61px; padding:9px 15px 8px; }
+  .route-field + .route-field { margin-top:7px; }
+  .route-field label { font-size:10px; margin-bottom:2px; }
+  .route-field input { font-size:18px; }
+  .swap-btn { top:46px; width:43px; height:43px; font-size:23px; }
+  .controls { margin-top:7px; }
+  .field { min-height:38px; padding:4px 7px; }
+  .field input { font-size:12px; }
+  .tabs { margin:7px 0; gap:6px; }
+  .tabs button, .tabs button.all { min-height:39px; font-size:13px; padding:7px 3px; }
+  .search-btn { min-height:42px; font-size:15px; }
+  .section-head { margin-top:7px; font-size:12px; }
+  .result { margin-top:5px; padding:9px 10px; }
+  .times strong { font-size:21px; }
+  .route-mini { font-size:11px; }
+  nav { height:68px; }
+  nav a { font-size:27px; padding-top:5px; }
+  nav small { font-size:10px; margin-top:3px; }
+  .app { padding-bottom:68px; }
+}
+
+/* Very narrow Android screens */
+@media (max-width: 360px) {
+  main { padding-left:12px; padding-right:12px; }
+  .hero-copy { left:18px; }
+  .tabs { gap:5px; }
+  .tabs button, .tabs button.all { font-size:12px; }
+}
