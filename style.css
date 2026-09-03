@@ -269,3 +269,7 @@ nav small{margin-top:0}
 .row-icon{width:28px;height:28px;border:1.8px solid currentColor;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800;line-height:1}
 .now-btn::before{content:"";display:inline-block;width:11px;height:11px;border:1.7px solid currentColor;border-radius:50%;vertical-align:-1px;margin-right:6px}
 @media(max-width:380px){}
+
+/* L-2 uses the same pink filled badge with black border as L-7. */
+.badge.pink-line{background:var(--pink);color:#fff;border:2px solid #111;border-radius:5px;padding:5px 12px}
+.mini-pill.pink-line{background:var(--pink);color:#fff;border:1px solid #111}
