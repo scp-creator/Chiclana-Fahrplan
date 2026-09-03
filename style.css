@@ -275,7 +275,7 @@ nav small{margin-top:0}
 .mini-pill.pink-line{background:var(--pink);color:#fff;border:1px solid #111}
 
 /* V33: separate official pink tones for L-2 and L-7 */
-.badge.line-l2{background:#bc27f4!important;color:#fff!important;border:2px solid #111!important;border-radius:5px;padding:5px 12px}
-.badge.line-l7{background:#e63594!important;color:#fff!important;border:2px solid #111!important;border-radius:5px;padding:5px 12px}
-.mini-pill.line-l2{background:#bc27f4!important;color:#fff!important;border:1px solid #111!important}
-.mini-pill.line-l7{background:#e63594!important;color:#fff!important;border:1px solid #111!important}
+.badge.line-l2{background:#b000ff!important;color:#fff!important;border:2px solid #111!important;border-radius:5px;padding:5px 12px}
+.badge.line-l7{background:#e21b8b!important;color:#fff!important;border:2px solid #111!important;border-radius:5px;padding:5px 12px}
+.mini-pill.line-l2{background:#b000ff!important;color:#fff!important;border:1px solid #111!important}
+.mini-pill.line-l7{background:#e21b8b!important;color:#fff!important;border:1px solid #111!important}
