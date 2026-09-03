@@ -122,7 +122,7 @@ function normalizeTimeInput() {
   let value = (el.value || "").trim().replace(".", ":");
 
   // Accept 7:30 as 07:30 and keep the field in HH:MM format.
-  const match = value.match(/^(\\d{1,2}):(\\d{2})$/);
+  const match = value.match(/^(\d{1,2}):(\d{2})$/);
   if (match) {
     let hh = Number(match[1]);
     let mm = Number(match[2]);
@@ -161,11 +161,26 @@ function search() {
 
       if (fi < 0 || ti < 0 || ti <= fi) return;
 
+      // Zeige die nächsten Fahrten ab der gewünschten Uhrzeit.
+      // Falls an diesem Tag keine spätere Fahrt mehr existiert,
+      // zeige stattdessen die erste Fahrt des Tages als nächste verfügbare Fahrt.
+      const candidates = [];
+
       line.trips.forEach((trip, idx) => {
         const a = trip[fi], b = trip[ti];
-        if (a === "--" || b === "--" || mins(a) < after) return;
-        arr.push({line, trip, idx, fi, ti, a, b});
+        if (a === "--" || b === "--") return;
+        candidates.push({line, trip, idx, fi, ti, a, b});
       });
+
+      const upcoming = candidates.filter(x => mins(x.a) >= after);
+
+      if (upcoming.length) {
+        arr.push(...upcoming);
+      } else if (candidates.length) {
+        // Kein späterer Bus/Tram mehr: nächste veröffentlichte Fahrt verwenden.
+        candidates.sort((x,y) => mins(x.a)-mins(y.a));
+        arr.push(candidates[0]);
+      }
     });
 
   arr.sort((x,y) => mins(x.a)-mins(y.a));
@@ -181,7 +196,7 @@ function search() {
       </div>
       <div class="route-mini">${escapeHtml(from)} → ${escapeHtml(to)}</div>
     </article>
-  `).join("") || `<div class="empty">Keine direkte Verbindung mit diesen Angaben gefunden.</div>`;
+  `).join("") || `<div class="empty">Keine direkte Verbindung für diese Haltestellen gefunden.</div>`;
 }
 
 function openDetail(x) {
