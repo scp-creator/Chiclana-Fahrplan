@@ -208,21 +208,30 @@ function buildConnections(from, to, selectedDate) {
     .forEach(line => {
       const fi = findStopIndex(line.stops, from);
       const ti = findStopIndex(line.stops, to);
-      // Both stops must be on the same line and in travel direction.
       if (fi < 0 || ti < 0 || fi === ti || ti < fi) return;
 
       line.trips.forEach((trip, idx) => {
-        const a = trip[fi];
-        const b = trip[ti];
-        // For ordinary lines both times must be published.
-        // L-7 intentionally publishes only the origin time, so an
-        // intermediate boarding stop cannot be assigned a made-up time.
-        if (!a || a === "--") return;
-        if (line.name !== "L-7" && (!b || b === "--")) return;
-        out.push({ line, trip, idx, fi, ti, a, b: b || "--" });
+        // Keep the published times exactly as supplied. Never invent a time
+        // for an intermediate stop. If a timetable does not publish a time
+        // at the selected boarding stop (notably L-7), the trip is still a
+        // valid route and can be shown with an open boarding time.
+        const boardingTime = trip[fi] && trip[fi] !== "--" ? trip[fi] : "--";
+        const arrivalTime = trip[ti] && trip[ti] !== "--" ? trip[ti] : "--";
+        const originTime = trip.find(v => v && v !== "--") || "--";
+        if (originTime === "--") return;
+
+        out.push({
+          line, trip, idx, fi, ti,
+          a: boardingTime,
+          b: arrivalTime,
+          sortTime: boardingTime !== "--" ? boardingTime : originTime,
+          originTime,
+          boardingPublished: boardingTime !== "--",
+          arrivalPublished: arrivalTime !== "--"
+        });
       });
     });
-  out.sort((x, y) => mins(x.a) - mins(y.a));
+  out.sort((x, y) => mins(x.sortTime) - mins(y.sortTime));
   return out;
 }
 
@@ -245,9 +254,10 @@ function search() {
     return;
   }
 
-  // The first page starts at the next departure. Exactly six connections
-  // are shown: the current/next one plus five following connections.
-  let pivot = all.findIndex(x => mins(x.a) >= after);
+  // Show the next/current connection plus five following connections.
+  // If the boarding time is not published, use the first published trip
+  // time only for ordering; the card itself clearly shows the open time.
+  let pivot = all.findIndex(x => mins(x.sortTime) >= after);
   if (pivot < 0) pivot = Math.max(0, all.length - 6);
   renderResultsWindow(all, from, to, pivot);
 }
@@ -269,12 +279,13 @@ function renderResultsWindow(all, from, to, startIndex) {
 
   const cards = visible.map(x => {
     const isL7 = x.line.name === "L-7";
+    const departure = x.a === "--" ? "—" : x.a;
     const arrival = x.b === "--" ? t("openArrival") : x.b;
-    const dur = x.b === "--" ? t("noPublishedArrival") : fmtDuration(x.a, x.b);
+    const dur = x.a === "--" || x.b === "--" ? t("noPublishedArrival") : fmtDuration(x.a, x.b);
     return `<article class="result ${x.line.type}" data-result-key="${escapeHtml(x.line.name)}-${x.idx}-${x.fi}-${x.ti}">
       <span class="badge ${x.line.type} ${isL7 ? "l7" : ""}">${x.line.type === "bus" ? "🚌" : "🚋"} ${escapeHtml(x.line.name)}</span>
       <span class="direction">${escapeHtml(x.line.direction)}</span>
-      <div class="times"><strong>${escapeHtml(x.a)} → ${escapeHtml(arrival)}</strong><span class="dur">${escapeHtml(dur)}${x.b === "--" ? "" : "　›"}</span></div>
+      <div class="times"><strong>${escapeHtml(departure)} → ${escapeHtml(arrival)}</strong><span class="dur">${escapeHtml(dur)}${x.b === "--" ? "" : "　›"}</span></div>
       <div class="route-mini">${escapeHtml(from)} → ${escapeHtml(to)}</div>
     </article>`;
   }).join("");
@@ -314,8 +325,8 @@ function openDetail(x) {
     </div>`;
   }).join("");
   $("detailBody").innerHTML=`<div class="detail-head"><span class="badge ${l.type} ${l.name==="L-7"?"l7":""}">${l.type==="bus"?"🚌":"🚋"} ${escapeHtml(l.name)}</span><div>${escapeHtml(l.direction)}</div></div>
-  <div class="summary"><div><strong>${escapeHtml(x.a)}</strong><br><span>${escapeHtml(t("yourBoarding"))}<br>${escapeHtml(l.stops[x.fi])}</span></div>
-  <div>${x.b==="--"?escapeHtml(t("openArrival")):escapeHtml(fmtDuration(x.a,x.b))}</div>
+  <div class="summary"><div><strong>${x.a === "--" ? "—" : escapeHtml(x.a)}</strong><br><span>${escapeHtml(t("yourBoarding"))}<br>${escapeHtml(l.stops[x.fi])}</span></div>
+  <div>${x.a==="--" || x.b==="--" ? escapeHtml(t("noPublishedArrival")) : escapeHtml(fmtDuration(x.a,x.b))}</div>
   <div style="text-align:right"><strong>${x.b==="--"?escapeHtml(t("openArrival")):escapeHtml(x.b)}</strong><br><span>${escapeHtml(t("yourDestination"))}<br>${escapeHtml(l.stops[x.ti])}</span></div></div>
   <div class="timeline">${visible}</div>
   <div class="note">${escapeHtml(t("validFrom"))} ${new Date(l.validFrom+"T00:00:00").toLocaleDateString(currentLang==="de"?"de-DE":currentLang==="es"?"es-ES":"en-GB")} ${escapeHtml(t("until"))} ${new Date(l.validUntil+"T00:00:00").toLocaleDateString(currentLang==="de"?"de-DE":currentLang==="es"?"es-ES":"en-GB")}.</div>`;
