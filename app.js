@@ -122,7 +122,7 @@ function normalizeTimeInput() {
   let value = (el.value || "").trim().replace(".", ":");
 
   // Accept 7:30 as 07:30 and keep the field in HH:MM format.
-  const match = value.match(/^(\d{1,2}):(\d{2})$/);
+  const match = value.match(/^(\\d{1,2}):(\\d{2})$/);
   if (match) {
     let hh = Number(match[1]);
     let mm = Number(match[2]);
@@ -161,27 +161,35 @@ function search() {
 
       if (fi < 0 || ti < 0 || ti <= fi) return;
 
-      // Zeige die nächsten Fahrten ab der gewünschten Uhrzeit.
-      // Falls an diesem Tag keine spätere Fahrt mehr existiert,
-      // zeige stattdessen die erste Fahrt des Tages als nächste verfügbare Fahrt.
-      const candidates = [];
-
+      // Nur veröffentlichte Abfahrtszeiten werden für die Suche benötigt.
+      // Bei L-7 sind die Zwischen-/Ankunftszeiten nicht veröffentlicht.
       line.trips.forEach((trip, idx) => {
         const a = trip[fi], b = trip[ti];
-        if (a === "--" || b === "--") return;
-        candidates.push({line, trip, idx, fi, ti, a, b});
+        if (a === "--" || mins(a) < after) return;
+        arr.push({line, trip, idx, fi, ti, a, b});
       });
-
-      const upcoming = candidates.filter(x => mins(x.a) >= after);
-
-      if (upcoming.length) {
-        arr.push(...upcoming);
-      } else if (candidates.length) {
-        // Kein späterer Bus/Tram mehr: nächste veröffentlichte Fahrt verwenden.
-        candidates.sort((x,y) => mins(x.a)-mins(y.a));
-        arr.push(candidates[0]);
-      }
     });
+
+  // Falls keine spätere Verbindung gefunden wurde, die erste veröffentlichte
+  // Fahrt des Tages als nächste mögliche Verbindung anzeigen.
+  if (!arr.length) {
+    DATA.lines
+      .filter(l => activeType === "all" || l.type === activeType)
+      .filter(l => !l.validFrom || selectedDate >= l.validFrom)
+      .filter(l => !l.validUntil || selectedDate <= l.validUntil)
+      .forEach(line => {
+        const fi = line.stops.findIndex(s => s.toLowerCase() === from.toLowerCase());
+        const ti = line.stops.findIndex(s => s.toLowerCase() === to.toLowerCase());
+        if (fi < 0 || ti < 0 || ti <= fi) return;
+
+        const first = line.trips
+          .map((trip, idx) => ({line, trip, idx, fi, ti, a: trip[fi], b: trip[ti]}))
+          .filter(x => x.a !== "--")
+          .sort((x,y) => mins(x.a)-mins(y.a))[0];
+
+        if (first) arr.push(first);
+      });
+  }
 
   arr.sort((x,y) => mins(x.a)-mins(y.a));
   $("count").textContent = arr.length ? `${arr.length} gefunden` : "";
@@ -191,12 +199,12 @@ function search() {
       <span class="badge ${x.line.type}">${x.line.type==="bus"?"🚌":"🚋"} ${x.line.name}</span>
       <span class="direction">${escapeHtml(x.line.direction)}</span>
       <div class="times">
-        <strong>${x.a} → ${x.b}</strong>
-        <span class="dur">${fmtDuration(x.a,x.b)}　›</span>
+        <strong>${x.a} → ${x.b === "--" ? "Ankunft offen" : x.b}</strong>
+        <span class="dur">${x.b === "--" ? "Keine veröffentlichte Ankunftszeit" : fmtDuration(x.a,x.b) + "　›"}</span>
       </div>
       <div class="route-mini">${escapeHtml(from)} → ${escapeHtml(to)}</div>
     </article>
-  `).join("") || `<div class="empty">Keine direkte Verbindung für diese Haltestellen gefunden.</div>`;
+  `).join("") || `<div class="empty">Keine direkte Verbindung mit diesen Angaben gefunden.</div>`;
 }
 
 function openDetail(x) {
@@ -224,8 +232,8 @@ function openDetail(x) {
     </div>
     <div class="summary">
       <div><strong>${x.a}</strong><br><span>Dein Einstieg<br>${escapeHtml(l.stops[x.fi])}</span></div>
-      <div>${fmtDuration(x.a,x.b)}</div>
-      <div style="text-align:right"><strong>${x.b}</strong><br><span>Dein Ziel<br>${escapeHtml(l.stops[x.ti])}</span></div>
+      <div>${x.b === "--" ? "Ankunft offen" : fmtDuration(x.a,x.b)}</div>
+      <div style="text-align:right"><strong>${x.b === "--" ? "Ankunft offen" : x.b}</strong><br><span>Dein Ziel<br>${escapeHtml(l.stops[x.ti])}</span></div>
     </div>
     <div class="timeline">${visible}</div>
     <div class="note">
