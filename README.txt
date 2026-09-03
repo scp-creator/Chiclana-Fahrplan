@@ -28,3 +28,5 @@ V11: Datum und Uhrzeit nutzen auf dem iPhone wieder die nativen Auswahlfelder. B
 
 
 V21: Die Verbindungssuche zeigt ab der gewählten Uhrzeit die nächste Verbindung plus fünf weitere (insgesamt 6). Über „Frühere Verbindungen“ und „Spätere Verbindungen“ kann man jeweils weitere Zeitfenster aufrufen.
+
+V22: Robust intermediate-stop matching and six-connection result windows with earlier/later navigation.

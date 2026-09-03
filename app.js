@@ -189,61 +189,76 @@ function mins(t) { const [h,m]=t.split(":").map(Number); return h*60+m; }
 function fmtDuration(a,b) { let d=mins(b)-mins(a); if(d<0)d+=1440; return `${d} Min.`; }
 
 function findStopIndex(stops, query) {
-  const q=normalizeText(query); if(!q)return -1;
-  let i=stops.findIndex(s=>normalizeText(s)===q); if(i>=0)return i;
-  return stops.findIndex(s=>normalizeText(s).startsWith(q));
+  const q = normalizeText(query);
+  if (!q) return -1;
+  // Exact match first, then a flexible prefix/contains match.
+  let i = stops.findIndex(s => normalizeText(s) === q);
+  if (i >= 0) return i;
+  i = stops.findIndex(s => normalizeText(s).startsWith(q));
+  if (i >= 0) return i;
+  return stops.findIndex(s => normalizeText(s).includes(q));
+}
+
+function buildConnections(from, to, selectedDate) {
+  const out = [];
+  DATA.lines
+    .filter(l => activeType === "all" || l.type === activeType)
+    .filter(l => !l.validFrom || selectedDate >= l.validFrom)
+    .filter(l => !l.validUntil || selectedDate <= l.validUntil)
+    .forEach(line => {
+      const fi = findStopIndex(line.stops, from);
+      const ti = findStopIndex(line.stops, to);
+      // Both stops must be on the same line and in travel direction.
+      if (fi < 0 || ti < 0 || fi === ti || ti < fi) return;
+
+      line.trips.forEach((trip, idx) => {
+        const a = trip[fi];
+        const b = trip[ti];
+        // For ordinary lines both times must be published.
+        // L-7 intentionally publishes only the origin time, so an
+        // intermediate boarding stop cannot be assigned a made-up time.
+        if (!a || a === "--") return;
+        if (line.name !== "L-7" && (!b || b === "--")) return;
+        out.push({ line, trip, idx, fi, ti, a, b: b || "--" });
+      });
+    });
+  out.sort((x, y) => mins(x.a) - mins(y.a));
+  return out;
 }
 
 function search() {
-  if(!DATA)return;
-  const from=$("from").value.trim(), to=$("to").value.trim();
-  const after=mins($("time").value || "00:00"), selectedDate=$("date").value;
-  if(!from || !to) {
-    $("count").textContent="";
-    $("results").innerHTML=`<div class="empty">${escapeHtml(t("chooseStops"))}</div>`;
+  if (!DATA) return;
+  const from = $("from").value.trim();
+  const to = $("to").value.trim();
+  const after = mins($("time").value || "00:00");
+  const selectedDate = $("date").value;
+  if (!from || !to) {
+    $("count").textContent = "";
+    $("results").innerHTML = `<div class="empty">${escapeHtml(t("chooseStops"))}</div>`;
     return;
   }
 
-  let all=[];
-  DATA.lines
-    .filter(l=>activeType==="all" || l.type===activeType)
-    .filter(l=>!l.validFrom || selectedDate>=l.validFrom)
-    .filter(l=>!l.validUntil || selectedDate<=l.validUntil)
-    .forEach(line=>{
-      const fi=findStopIndex(line.stops,from), ti=findStopIndex(line.stops,to);
-      if(fi<0 || ti<0 || ti<=fi)return;
-      line.trips.forEach((trip,idx)=>{
-        const a=trip[fi], b=trip[ti];
-        if(!a || a==="--")return;
-        all.push({line,trip,idx,fi,ti,a,b});
-      });
-    });
-
-  all.sort((x,y)=>mins(x.a)-mins(y.a));
-  const upcoming=all.filter(x=>mins(x.a)>=after);
-  const earlier=all.filter(x=>mins(x.a)<after);
-
-  // Start with the next available departure and the following five.
-  let start=0;
-  let visible=upcoming.slice(0,6);
-  let mode="upcoming";
-
-  // If there is nothing later today, keep the previous behaviour and show the first departures.
-  if(!visible.length){
-    visible=all.slice(0,6);
-    mode="fallback";
-    start=0;
+  const all = buildConnections(from, to, selectedDate);
+  if (!all.length) {
+    $("count").textContent = "";
+    $("results").innerHTML = `<div class="empty">${escapeHtml(t("noConnection"))}</div>`;
+    return;
   }
 
-  renderResultsWindow(visible, all, from, to, after, earlier, mode, start);
+  // The first page starts at the next departure. Exactly six connections
+  // are shown: the current/next one plus five following connections.
+  let pivot = all.findIndex(x => mins(x.a) >= after);
+  if (pivot < 0) pivot = Math.max(0, all.length - 6);
+  renderResultsWindow(all, from, to, pivot);
 }
 
-function renderResultsWindow(visible, all, from, to, after, earlier, mode="upcoming", start=0){
-  $("count").textContent=all.length?`${all.length} ${t("found")}`:"";
-  const hasEarlier = mode !== "fallback" && earlier.length > 0;
-  const firstVisibleIndex = visible.length ? all.indexOf(visible[0]) : 0;
-  const lastVisibleIndex = visible.length ? all.indexOf(visible[visible.length-1]) : -1;
-  const hasLater = lastVisibleIndex >= 0 && lastVisibleIndex < all.length-1;
+function renderResultsWindow(all, from, to, startIndex) {
+  const visible = all.slice(startIndex, startIndex + 6);
+  const endIndex = startIndex + visible.length - 1;
+  $("count").textContent = all.length ? `${all.length} ${t("found")}` : "";
+
+  const hasEarlier = startIndex > 0;
+  const hasLater = endIndex >= 0 && endIndex < all.length - 1;
 
   const earlierButton = hasEarlier
     ? `<button type="button" class="connection-nav earlier" id="earlierBtn">‹ ${escapeHtml(t("earlier"))}</button>`
@@ -252,40 +267,39 @@ function renderResultsWindow(visible, all, from, to, after, earlier, mode="upcom
     ? `<button type="button" class="connection-nav later" id="laterBtn">${escapeHtml(t("later"))} ›</button>`
     : "";
 
-  const cards=visible.map(x=>{
-    const isL7=x.line.name==="L-7";
-    const arrival=x.b==="--"?t("openArrival"):x.b;
-    const dur=x.b==="--"?t("noPublishedArrival"):fmtDuration(x.a,x.b);
+  const cards = visible.map(x => {
+    const isL7 = x.line.name === "L-7";
+    const arrival = x.b === "--" ? t("openArrival") : x.b;
+    const dur = x.b === "--" ? t("noPublishedArrival") : fmtDuration(x.a, x.b);
     return `<article class="result ${x.line.type}" data-result-key="${escapeHtml(x.line.name)}-${x.idx}-${x.fi}-${x.ti}">
-      <span class="badge ${x.line.type} ${isL7?"l7":""}">${x.line.type==="bus"?"🚌":"🚋"} ${escapeHtml(x.line.name)}</span>
+      <span class="badge ${x.line.type} ${isL7 ? "l7" : ""}">${x.line.type === "bus" ? "🚌" : "🚋"} ${escapeHtml(x.line.name)}</span>
       <span class="direction">${escapeHtml(x.line.direction)}</span>
-      <div class="times"><strong>${escapeHtml(x.a)} → ${escapeHtml(arrival)}</strong><span class="dur">${escapeHtml(dur)}${x.b==="--"?"":"　›"}</span></div>
+      <div class="times"><strong>${escapeHtml(x.a)} → ${escapeHtml(arrival)}</strong><span class="dur">${escapeHtml(dur)}${x.b === "--" ? "" : "　›"}</span></div>
       <div class="route-mini">${escapeHtml(from)} → ${escapeHtml(to)}</div>
     </article>`;
   }).join("");
 
   $("results").innerHTML = `${earlierButton}${cards || `<div class="empty">${escapeHtml(t("noConnection"))}</div>`}${laterButton}`;
 
-  document.querySelectorAll(".result").forEach(el=>el.addEventListener("click",()=>{
-    const key=el.dataset.resultKey;
-    const found=all.find(x=>`${x.line.name}-${x.idx}-${x.fi}-${x.ti}`===key);
-    if(found)openDetail(found);
+  document.querySelectorAll(".result").forEach(el => el.addEventListener("click", () => {
+    const key = el.dataset.resultKey;
+    const found = all.find(x => `${x.line.name}-${x.idx}-${x.fi}-${x.ti}` === key);
+    if (found) openDetail(found);
   }));
 
-  const earlierEl=$("earlierBtn"), laterEl=$("laterBtn");
-  if(earlierEl){
-    earlierEl.addEventListener("click",()=>{
-      const newEnd=Math.max(0, firstVisibleIndex-1);
-      const newStart=Math.max(0,newEnd-5);
-      renderResultsWindow(all.slice(newStart,newEnd+1),all,from,to,after,all.filter(x=>mins(x.a)<after),"window",newStart);
-      window.scrollTo({top:0,behavior:"smooth"});
+  const earlierEl = $("earlierBtn"), laterEl = $("laterBtn");
+  if (earlierEl) {
+    earlierEl.addEventListener("click", () => {
+      const newStart = Math.max(0, startIndex - 6);
+      renderResultsWindow(all, from, to, newStart);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
-  if(laterEl){
-    laterEl.addEventListener("click",()=>{
-      const newStart=lastVisibleIndex+1;
-      renderResultsWindow(all.slice(newStart,newStart+6),all,from,to,after,all.filter(x=>mins(x.a)<after),"window",newStart);
-      window.scrollTo({top:0,behavior:"smooth"});
+  if (laterEl) {
+    laterEl.addEventListener("click", () => {
+      const newStart = Math.min(Math.max(0, all.length - 6), startIndex + 6);
+      renderResultsWindow(all, from, to, newStart);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
 }
