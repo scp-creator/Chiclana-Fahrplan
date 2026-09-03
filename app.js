@@ -18,7 +18,7 @@ const I18N = {
   de: {
     subtitle:"Fahrplan", from:"Von", to:"Nach", date:"Datum", time:"Uhrzeit",
     bus:"Bus", tram:"Tram", both:"Beide", search:"Verbindungen suchen",
-    language:"Sprache", available:"Verfügbare Verbindungen",
+    language:"Sprache", selectedTime:"Fahrten ab", moreTitle:"Mehr", about:"Über diese App", imageCreditTitle:"Bildnachweis", imageCreditText:"Headerbild: Castillo de Sancti Petri bei Sonnenuntergang. Quelle und Lizenz bitte gemäß Originalquelle des verwendeten Fotos beachten.", available:"Verfügbare Verbindungen",
     navSearch:"Suchen", navFavorites:"Favoriten", navLines:"Linien", navMore:"Mehr",
     stopPlaceholder:"Haltestelle eingeben oder wählen",
     noStop:"Keine passende Haltestelle",
@@ -27,12 +27,12 @@ const I18N = {
     found:"gefunden", openArrival:"Ankunft offen",
     noPublishedArrival:"Keine veröffentlichte Ankunftszeit",
     yourBoarding:"Dein Einstieg", yourDestination:"Dein Ziel",
-    validFrom:"Fahrplan gültig vom", until:"bis", aboutTitle:"Über diese App", aboutText:"Fahrplan-App für Chiclana de la Frontera.", imageCreditTitle:"Bildnachweis", imageCredit:"Headerbild: Castillo de Sancti Petri. Foto: PEPE GADEIRAS · Wikimedia Commons · CC BY 4.0.", sourceLink:"Quelle bei Wikimedia Commons", creditNote:"Für die App wurde das Bild zugeschnitten bzw. angepasst."
+    validFrom:"Fahrplan gültig vom", until:"bis"
   },
   es: {
     subtitle:"Horario", from:"Desde", to:"Hasta", date:"Fecha", time:"Hora",
     bus:"Autobús", tram:"Tranvía", both:"Ambos", search:"Buscar conexiones",
-    language:"Idioma", available:"Conexiones disponibles",
+    language:"Idioma", selectedTime:"Viajes desde", moreTitle:"Más", about:"Sobre esta app", imageCreditTitle:"Créditos de imagen", imageCreditText:"Imagen de cabecera: Castillo de Sancti Petri al atardecer. Consulta la fuente y licencia original del fotógrafo.", available:"Conexiones disponibles",
     navSearch:"Buscar", navFavorites:"Favoritos", navLines:"Líneas", navMore:"Más",
     stopPlaceholder:"Escribe o elige una parada",
     noStop:"No se encontró ninguna parada",
@@ -41,12 +41,12 @@ const I18N = {
     found:"encontradas", openArrival:"Llegada abierta",
     noPublishedArrival:"No hay hora de llegada publicada",
     yourBoarding:"Tu subida", yourDestination:"Tu destino",
-    validFrom:"Horario válido del", until:"al", aboutTitle:"Sobre esta app", aboutText:"Aplicación de horarios para Chiclana de la Frontera.", imageCreditTitle:"Créditos de imagen", imageCredit:"Imagen de cabecera: Castillo de Sancti Petri. Foto: PEPE GADEIRAS · Wikimedia Commons · CC BY 4.0.", sourceLink:"Fuente en Wikimedia Commons", creditNote:"La imagen ha sido recortada o adaptada para esta aplicación."
+    validFrom:"Horario válido del", until:"al"
   },
   en: {
     subtitle:"Timetable", from:"From", to:"To", date:"Date", time:"Time",
     bus:"Bus", tram:"Tram", both:"Both", search:"Search connections",
-    language:"Language", available:"Available connections",
+    language:"Language", selectedTime:"Trips from", moreTitle:"More", about:"About this app", imageCreditTitle:"Image credits", imageCreditText:"Header image: Castillo de Sancti Petri at sunset. Please follow the original photographer’s source and license terms.", available:"Available connections",
     navSearch:"Search", navFavorites:"Favorites", navLines:"Lines", navMore:"More",
     stopPlaceholder:"Enter or choose a stop",
     noStop:"No matching stop",
@@ -55,7 +55,7 @@ const I18N = {
     found:"found", openArrival:"Arrival open",
     noPublishedArrival:"No published arrival time",
     yourBoarding:"Your boarding", yourDestination:"Your destination",
-    validFrom:"Timetable valid from", until:"to", aboutTitle:"About this app", aboutText:"Timetable app for Chiclana de la Frontera.", imageCreditTitle:"Image credit", imageCredit:"Header image: Castillo de Sancti Petri. Photo: PEPE GADEIRAS · Wikimedia Commons · CC BY 4.0.", sourceLink:"Source on Wikimedia Commons", creditNote:"The image has been cropped or adapted for this app."
+    validFrom:"Timetable valid from", until:"to"
   }
 };
 
@@ -103,20 +103,21 @@ function applyLanguage() {
   $("time").setAttribute("aria-label", t("time"));
   $("swapBtn").setAttribute("aria-label", `${t("from")} / ${t("to")} tauschen`);
   $("closeDetail").setAttribute("aria-label", currentLang==="de" ? "Schließen" : currentLang==="es" ? "Cerrar" : "Close");
+  updateQuickTime();
   search();
 }
 
-function setupMore() {
-  const nav = $("moreNav"), modal = $("moreModal"), close = $("closeMore");
-  if (!nav || !modal || !close) return;
-  nav.addEventListener("click", e => { e.preventDefault(); modal.classList.remove("hidden"); });
-  close.addEventListener("click", () => modal.classList.add("hidden"));
-  modal.addEventListener("click", e => { if (e.target === modal) modal.classList.add("hidden"); });
+function updateQuickTime(){
+  const tv=$("time").value || "--:--";
+  const dv=$("date").value;
+  $("quickTime").textContent=tv;
+  if(dv){ const [y,m,d]=dv.split("-"); $("quickDate").textContent=`${d}.${m}.${y}`; }
 }
 
 function init() {
   stopNames = [...new Set(DATA.lines.flatMap(l => l.stops))].sort((a,b) => a.localeCompare(b,"de"));
   setCurrentDateTime();
+  updateQuickTime();
   setupAutocomplete("from","fromSuggestions");
   setupAutocomplete("to","toSuggestions");
 
@@ -130,7 +131,7 @@ function init() {
   });
 
   ["from","to","date","time"].forEach(id => {
-    $(id).addEventListener("change", search);
+    $(id).addEventListener("change", () => { updateQuickTime(); search(); });
   });
 
   document.querySelectorAll(".lang").forEach(b => {
@@ -146,9 +147,18 @@ function init() {
     const a = $("from").value; $("from").value = $("to").value; $("to").value = a; search();
   });
   $("closeDetail").addEventListener("click", closeDetail);
+  $("closeMore").addEventListener("click", () => $("moreModal").classList.add("hidden"));
+  $("languageRow").addEventListener("click", () => $("languagePanel").classList.toggle("hidden"));
+  $("aboutRow").addEventListener("click", () => $("aboutPanel").classList.toggle("hidden"));
+  document.querySelectorAll("nav a").forEach(a => a.addEventListener("click", () => {
+    const n=a.dataset.nav;
+    if(n === "more") { $("moreModal").classList.remove("hidden"); return; }
+    document.querySelectorAll("nav a").forEach(x=>x.classList.remove("selected")); a.classList.add("selected");
+    if(n === "search") window.scrollTo({top:0,behavior:"smooth"});
+  }));
+  $("moreModal").addEventListener("click", e => { if(e.target === $("moreModal")) $("moreModal").classList.add("hidden"); });
   $("detail").addEventListener("click", e => { if(e.target === $("detail")) closeDetail(); });
 
-  setupMore();
   applyLanguage();
 }
 

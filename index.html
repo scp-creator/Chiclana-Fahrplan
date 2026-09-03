@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f7fbfa">
+<meta name="theme-color" content="#ffffff">
 <link rel="manifest" href="manifest.webmanifest">
 <title>Chiclana Fahrplan</title>
 <link rel="stylesheet" href="style.css">
@@ -26,9 +26,7 @@
         <input id="from" autocomplete="off" placeholder="Haltestelle eingeben oder wählen" data-i18n-placeholder="stopPlaceholder">
         <div id="fromSuggestions" class="suggestions hidden"></div>
       </div>
-
       <button id="swapBtn" class="swap-btn" type="button" aria-label="Von und Nach tauschen">↕</button>
-
       <div class="route-field autocomplete">
         <label for="to" data-i18n="to">Nach</label>
         <input id="to" autocomplete="off" placeholder="Haltestelle eingeben oder wählen" data-i18n-placeholder="stopPlaceholder">
@@ -37,8 +35,8 @@
     </section>
 
     <section class="controls">
-      <label class="field">📅 <span><span data-i18n="date">Datum</span><input id="date" type="date"></span></label>
-      <label class="field">🕐 <span><span data-i18n="time">Uhrzeit</span><input id="time" type="time" aria-label="Uhrzeit"></span></label>
+      <label class="field"><span data-i18n="date">Datum</span><input id="date" type="date"></label>
+      <label class="field"><span data-i18n="time">Uhrzeit</span><input id="time" type="time" aria-label="Uhrzeit"></label>
     </section>
 
     <div class="tabs">
@@ -47,28 +45,19 @@
       <button data-type="all" class="all"><span data-i18n="both">Beide</span></button>
     </div>
 
-    <button id="searchBtn" class="search-btn" type="button">🔎 <span data-i18n="search">Verbindungen suchen</span></button>
+    <button id="searchBtn" class="search-btn" type="button"><span data-i18n="search">Verbindungen suchen</span></button>
 
-    <section class="language-box">
-      <div class="language-label" data-i18n="language">Sprache</div>
-      <div class="language-switch" role="group" aria-label="Sprache">
-        <button type="button" data-lang="de" class="lang active">🇩🇪 Deutsch</button>
-        <button type="button" data-lang="es" class="lang">🇪🇸 Español</button>
-        <button type="button" data-lang="en" class="lang">🇬🇧 English</button>
-      </div>
-    </section>
+    <div class="quick-time"><span data-i18n="selectedTime">Fahrten ab</span> <b id="quickTime">--:--</b> · <span id="quickDate">--.--.----</span></div>
 
-    <div class="section-head">
-      <b data-i18n="available">Verfügbare Verbindungen</b><span id="count"></span>
-    </div>
+    <div class="section-head"><b data-i18n="available">Verfügbare Verbindungen</b><span id="count"></span></div>
     <div id="results"></div>
   </main>
 
   <nav>
-    <a class="selected">⌕<small data-i18n="navSearch">Suchen</small></a>
-    <a>♡<small data-i18n="navFavorites">Favoriten</small></a>
-    <a>♧<small data-i18n="navLines">Linien</small></a>
-    <a id="moreNav" href="#">•••<small data-i18n="navMore">Mehr</small></a>
+    <a class="selected" data-nav="search">⌕<small data-i18n="navSearch">Suchen</small></a>
+    <a data-nav="favorites">♡<small data-i18n="navFavorites">Favoriten</small></a>
+    <a data-nav="lines">♧<small data-i18n="navLines">Linien</small></a>
+    <a data-nav="more">•••<small data-i18n="navMore">Mehr</small></a>
   </nav>
 </div>
 
@@ -79,21 +68,26 @@
   </div>
 </div>
 
-<div id="moreModal" class="more-modal hidden">
-  <div class="more-sheet">
-    <button id="closeMore" class="more-close" type="button" aria-label="Schließen">×</button>
-    <h2 data-i18n="aboutTitle">Über diese App</h2>
-    <p><strong>Chiclana Fahrplan</strong></p>
-    <p data-i18n="aboutText">Fahrplan-App für Chiclana de la Frontera.</p>
-    <hr>
-    <h3 data-i18n="imageCreditTitle">Bildnachweis</h3>
-    <p data-i18n="imageCredit">Headerbild: Castillo de Sancti Petri. Foto: PEPE GADEIRAS · Wikimedia Commons · CC BY 4.0.</p>
-    <p><a href="https://commons.wikimedia.org/wiki/File:CASTILLO_DE_SANCTI_PETRI,_CHICLANA.jpg" target="_blank" rel="noopener" data-i18n="sourceLink">Quelle bei Wikimedia Commons</a></p>
-    <p><a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></p>
-    <p class="credit-note" data-i18n="creditNote">Für die App wurde das Bild zugeschnitten bzw. angepasst.</p>
+<div id="moreModal" class="modal hidden">
+  <div class="sheet more-sheet">
+    <button id="closeMore" class="close" type="button" aria-label="Schließen">×</button>
+    <h2 data-i18n="moreTitle">Mehr</h2>
+    <button class="more-row" id="languageRow"><span>🌐</span><span data-i18n="language">Sprache</span><b>›</b></button>
+    <div id="languagePanel" class="language-box hidden">
+      <div class="language-switch" role="group" aria-label="Sprache">
+        <button type="button" data-lang="de" class="lang">🇩🇪 Deutsch</button>
+        <button type="button" data-lang="es" class="lang">🇪🇸 Español</button>
+        <button type="button" data-lang="en" class="lang">🇬🇧 English</button>
+      </div>
+    </div>
+    <button class="more-row" id="aboutRow"><span>ⓘ</span><span data-i18n="about">Über diese App</span><b>›</b></button>
+    <div id="aboutPanel" class="about-panel hidden">
+      <h3>Chiclana Fahrplan</h3>
+      <p><b data-i18n="imageCreditTitle">Bildnachweis</b></p>
+      <p data-i18n="imageCreditText">Headerbild: Castillo de Sancti Petri bei Sonnenuntergang. Quelle und Lizenz bitte gemäß Originalquelle des verwendeten Fotos beachten.</p>
+    </div>
   </div>
 </div>
-
 <script src="app.js"></script>
 </body>
 </html>
