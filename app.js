@@ -151,8 +151,19 @@ function search() {
   activeLines.forEach(line => {
     const nfrom = normalizeText(from);
     const nto = normalizeText(to);
-    const fi = line.stops.findIndex(s => normalizeText(s) === nfrom);
-    const ti = line.stops.findIndex(s => normalizeText(s) === nto);
+    const findStopIndex = (stops, query) => {
+      const q = normalizeText(query);
+      if (!q) return -1;
+      // First prefer an exact normalized match.
+      let i = stops.findIndex(s => normalizeText(s) === q);
+      if (i >= 0) return i;
+      // Also allow typing a shortened stop name, e.g. "Rio Iro" for
+      // the displayed stop "Río Iro Ntra. Sra. Remedios".
+      i = stops.findIndex(s => normalizeText(s).startsWith(q));
+      return i;
+    };
+    const fi = findStopIndex(line.stops, from);
+    const ti = findStopIndex(line.stops, to);
 
     if (fi < 0 || ti < 0 || ti <= fi) return;
 
