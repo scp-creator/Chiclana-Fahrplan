@@ -69,7 +69,7 @@ nav a{text-align:center;padding-top:9px;color:#777;font-size:28px;line-height:1}
 .lang.active{background:#e7f4f3;border-color:#167583;color:#125e68}
 
 /* V19 – clean iPhone-style layout matching the supplied reference screenshot */
-:root{--ink:#12203d;--muted:#747d87;--teal:#087486;--mint:#4bbf7e;--bus:#ffbd08;--pink:#f20b83}
+:root{--ink:#12203d;--muted:#747d87;--teal:#087486;--mint:#4bbf7e;--bus:#ffbd08;--pink:#e63594;--l2:#bc27f4;--l7:#e63594}
 html,body{background:#fff}
 body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;color:var(--ink)}
 .app{max-width:520px;background:linear-gradient(180deg,#fff 0%,#fff 62%,#fafafa 100%);padding-bottom:88px}
@@ -273,3 +273,9 @@ nav small{margin-top:0}
 /* L-2 uses the same pink filled badge with black border as L-7. */
 .badge.pink-line{background:var(--pink);color:#fff;border:2px solid #111;border-radius:5px;padding:5px 12px}
 .mini-pill.pink-line{background:var(--pink);color:#fff;border:1px solid #111}
+
+/* V33: separate official pink tones for L-2 and L-7 */
+.badge.line-l2{background:#bc27f4!important;color:#fff!important;border:2px solid #111!important;border-radius:5px;padding:5px 12px}
+.badge.line-l7{background:#e63594!important;color:#fff!important;border:2px solid #111!important;border-radius:5px;padding:5px 12px}
+.mini-pill.line-l2{background:#bc27f4!important;color:#fff!important;border:1px solid #111!important}
+.mini-pill.line-l7{background:#e63594!important;color:#fff!important;border:1px solid #111!important}
