@@ -27,7 +27,7 @@ const I18N = {
     found:"gefunden", openArrival:"Ankunft offen",
     noPublishedArrival:"Keine veröffentlichte Ankunftszeit",
     yourBoarding:"Dein Einstieg", yourDestination:"Dein Ziel",
-    validFrom:"Fahrplan gültig vom", until:"bis"
+    validFrom:"Fahrplan gültig vom", until:"bis", aboutTitle:"Über diese App", aboutText:"Fahrplan-App für Chiclana de la Frontera.", imageCreditTitle:"Bildnachweis", imageCredit:"Headerbild: Castillo de Sancti Petri. Foto: PEPE GADEIRAS · Wikimedia Commons · CC BY 4.0.", sourceLink:"Quelle bei Wikimedia Commons", creditNote:"Für die App wurde das Bild zugeschnitten bzw. angepasst."
   },
   es: {
     subtitle:"Horario", from:"Desde", to:"Hasta", date:"Fecha", time:"Hora",
@@ -41,7 +41,7 @@ const I18N = {
     found:"encontradas", openArrival:"Llegada abierta",
     noPublishedArrival:"No hay hora de llegada publicada",
     yourBoarding:"Tu subida", yourDestination:"Tu destino",
-    validFrom:"Horario válido del", until:"al"
+    validFrom:"Horario válido del", until:"al", aboutTitle:"Sobre esta app", aboutText:"Aplicación de horarios para Chiclana de la Frontera.", imageCreditTitle:"Créditos de imagen", imageCredit:"Imagen de cabecera: Castillo de Sancti Petri. Foto: PEPE GADEIRAS · Wikimedia Commons · CC BY 4.0.", sourceLink:"Fuente en Wikimedia Commons", creditNote:"La imagen ha sido recortada o adaptada para esta aplicación."
   },
   en: {
     subtitle:"Timetable", from:"From", to:"To", date:"Date", time:"Time",
@@ -55,7 +55,7 @@ const I18N = {
     found:"found", openArrival:"Arrival open",
     noPublishedArrival:"No published arrival time",
     yourBoarding:"Your boarding", yourDestination:"Your destination",
-    validFrom:"Timetable valid from", until:"to"
+    validFrom:"Timetable valid from", until:"to", aboutTitle:"About this app", aboutText:"Timetable app for Chiclana de la Frontera.", imageCreditTitle:"Image credit", imageCredit:"Header image: Castillo de Sancti Petri. Photo: PEPE GADEIRAS · Wikimedia Commons · CC BY 4.0.", sourceLink:"Source on Wikimedia Commons", creditNote:"The image has been cropped or adapted for this app."
   }
 };
 
@@ -106,6 +106,14 @@ function applyLanguage() {
   search();
 }
 
+function setupMore() {
+  const nav = $("moreNav"), modal = $("moreModal"), close = $("closeMore");
+  if (!nav || !modal || !close) return;
+  nav.addEventListener("click", e => { e.preventDefault(); modal.classList.remove("hidden"); });
+  close.addEventListener("click", () => modal.classList.add("hidden"));
+  modal.addEventListener("click", e => { if (e.target === modal) modal.classList.add("hidden"); });
+}
+
 function init() {
   stopNames = [...new Set(DATA.lines.flatMap(l => l.stops))].sort((a,b) => a.localeCompare(b,"de"));
   setCurrentDateTime();
@@ -140,6 +148,7 @@ function init() {
   $("closeDetail").addEventListener("click", closeDetail);
   $("detail").addEventListener("click", e => { if(e.target === $("detail")) closeDetail(); });
 
+  setupMore();
   applyLanguage();
 }
 

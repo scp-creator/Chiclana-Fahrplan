@@ -68,7 +68,7 @@
     <a class="selected">⌕<small data-i18n="navSearch">Suchen</small></a>
     <a>♡<small data-i18n="navFavorites">Favoriten</small></a>
     <a>♧<small data-i18n="navLines">Linien</small></a>
-    <a>•••<small data-i18n="navMore">Mehr</small></a>
+    <a id="moreNav" href="#">•••<small data-i18n="navMore">Mehr</small></a>
   </nav>
 </div>
 
@@ -76,6 +76,21 @@
   <div class="sheet">
     <button id="closeDetail" class="close" type="button" aria-label="Schließen">‹</button>
     <div id="detailBody"></div>
+  </div>
+</div>
+
+<div id="moreModal" class="more-modal hidden">
+  <div class="more-sheet">
+    <button id="closeMore" class="more-close" type="button" aria-label="Schließen">×</button>
+    <h2 data-i18n="aboutTitle">Über diese App</h2>
+    <p><strong>Chiclana Fahrplan</strong></p>
+    <p data-i18n="aboutText">Fahrplan-App für Chiclana de la Frontera.</p>
+    <hr>
+    <h3 data-i18n="imageCreditTitle">Bildnachweis</h3>
+    <p data-i18n="imageCredit">Headerbild: Castillo de Sancti Petri. Foto: PEPE GADEIRAS · Wikimedia Commons · CC BY 4.0.</p>
+    <p><a href="https://commons.wikimedia.org/wiki/File:CASTILLO_DE_SANCTI_PETRI,_CHICLANA.jpg" target="_blank" rel="noopener" data-i18n="sourceLink">Quelle bei Wikimedia Commons</a></p>
+    <p><a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></p>
+    <p class="credit-note" data-i18n="creditNote">Für die App wurde das Bild zugeschnitten bzw. angepasst.</p>
   </div>
 </div>
 
