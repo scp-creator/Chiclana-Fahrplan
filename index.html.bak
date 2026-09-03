@@ -10,7 +10,6 @@
 <link rel="apple-touch-startup-image" href="splash-1290x2796.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
-<meta name="application-version" content="V29">
 <title>Chiclana Fahrplan</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -30,7 +29,7 @@
     <section class="route-stack">
       <div class="route-field autocomplete">
         <label for="from" data-i18n="from">Von</label>
-        <span class="field-location-icon" aria-hidden="true"></span><input id="from" autocomplete="off" placeholder="Haltestelle eingeben oder wählen" data-i18n-placeholder="stopPlaceholder">
+        <input id="from" autocomplete="off" placeholder="Haltestelle eingeben oder wählen" data-i18n-placeholder="stopPlaceholder">
         <div id="fromSuggestions" class="suggestions hidden"></div>
       </div>
       <button id="swapBtn" class="swap-btn" type="button" aria-label="Von und Nach tauschen" title="Von und Nach tauschen">
@@ -38,7 +37,7 @@
       </button>
       <div class="route-field autocomplete">
         <label for="to" data-i18n="to">Nach</label>
-        <span class="field-location-icon" aria-hidden="true"></span><input id="to" autocomplete="off" placeholder="Haltestelle eingeben oder wählen" data-i18n-placeholder="stopPlaceholder">
+        <input id="to" autocomplete="off" placeholder="Haltestelle eingeben oder wählen" data-i18n-placeholder="stopPlaceholder">
         <div id="toSuggestions" class="suggestions hidden"></div>
       </div>
     </section>
@@ -55,7 +54,7 @@
     </div>
 
     <button id="searchBtn" class="search-btn" type="button"><span data-i18n="search">Verbindungen suchen</span></button>
-    <button id="nowBtn" class="now-btn" type="button"><span data-i18n="next">Nächste Verbindung</span></button>
+    <button id="nowBtn" class="now-btn" type="button">⏱ <span data-i18n="next">Nächste Verbindung</span></button>
 
     <div class="quick-time"><span data-i18n="selectedTime">Fahrten ab</span> <b id="quickTime">--:--</b> · <span id="quickDate">--.--.----</span></div>
 
@@ -65,10 +64,10 @@
   </div>
 
   <nav>
-    <a class="selected" data-nav="search"><span class="nav-icon search-icon"></span><small data-i18n="navSearch">Suchen</small></a>
-    <a data-nav="favorites"><span class="nav-icon heart-icon"></span><small data-i18n="navFavorites">Favoriten</small></a>
-    <a data-nav="lines"><span class="nav-icon lines-icon"></span><small data-i18n="navLines">Linien</small></a>
-    <a data-nav="more"><span class="nav-icon more-icon"><i></i><i></i><i></i></span><small data-i18n="navMore">Mehr</small></a>
+    <a class="selected" data-nav="search">⌕<small data-i18n="navSearch">Suchen</small></a>
+    <a data-nav="favorites">♡<small data-i18n="navFavorites">Favoriten</small></a>
+    <a data-nav="lines">♧<small data-i18n="navLines">Linien</small></a>
+    <a data-nav="more">•••<small data-i18n="navMore">Mehr</small></a>
   </nav>
 </div>
 
@@ -83,7 +82,7 @@
   <div class="sheet more-sheet">
     <button id="closeMore" class="close" type="button" aria-label="Schließen">×</button>
     <h2 data-i18n="moreTitle">Mehr</h2>
-    <button class="more-row" id="languageRow"><span class="row-icon">A</span><span data-i18n="language">Sprache</span><b>›</b></button>
+    <button class="more-row" id="languageRow"><span>🌐</span><span data-i18n="language">Sprache</span><b>›</b></button>
     <div id="languagePanel" class="language-box hidden">
       <div class="language-switch" role="group" aria-label="Sprache">
         <button type="button" data-lang="de" class="lang">🇩🇪 Deutsch</button>
@@ -91,8 +90,8 @@
         <button type="button" data-lang="en" class="lang">🇬🇧 English</button>
       </div>
     </div>
-    <label class="more-row toggle-row"><span class="row-icon">◐</span><span data-i18n="darkMode">Dunkelmodus</span><input id="darkToggle" type="checkbox"><b>›</b></label>
-    <button class="more-row" id="aboutRow"><span class="row-icon">i</span><span data-i18n="about">Über diese App</span><b>›</b></button>
+    <label class="more-row toggle-row"><span>🌙</span><span data-i18n="darkMode">Dunkelmodus</span><input id="darkToggle" type="checkbox"><b>›</b></label>
+    <button class="more-row" id="aboutRow"><span>ⓘ</span><span data-i18n="about">Über diese App</span><b>›</b></button>
     <div id="aboutPanel" class="about-panel hidden">
       <h3>Chiclana Fahrplan</h3>
       <p><b data-i18n="imageCreditTitle">Bildnachweis</b></p>
@@ -104,7 +103,7 @@
 
 <div id="favoritesModal" class="modal hidden"><div class="sheet feature-sheet"><button id="closeFavorites" class="close" type="button">×</button><div id="favoritesBody"></div></div></div>
 
-<div id="linesModal" class="modal hidden"><div class="sheet feature-sheet"><button id="closeLines" class="close" type="button">×</button><div id="linesBody"><div id="lineListPanel"><h2 data-i18n="linesTitle">Linien & Haltestellen</h2><div class="stop-search"><span>⌕</span><input id="stopSearch" data-i18n-placeholder="stopsSearch" placeholder="Haltestelle suchen"></div><div id="stopResults"></div><h3 class="subhead">Linien</h3><div id="lineList"></div></div><div id="lineDetail" class="hidden"></div></div></div></div>
+<div id="linesModal" class="modal hidden"><div class="sheet feature-sheet"><button id="closeLines" class="close" type="button">×</button><div id="lineListPanel"><h2 data-i18n="linesTitle">Linien & Haltestellen</h2><div class="stop-search"><span>⌕</span><input id="stopSearch" data-i18n-placeholder="stopsSearch" placeholder="Haltestelle suchen"></div><div id="stopResults"></div><h3 class="subhead">Linien</h3><div id="lineList"></div></div><div id="lineDetail" class="hidden"></div></div></div>
 
 <script src="app.js"></script>
 </body>

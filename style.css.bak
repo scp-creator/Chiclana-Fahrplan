@@ -252,23 +252,3 @@ html[data-theme="dark"] .line-direction-block h4{color:#aab8bc}
 @media (max-height:720px){.swap-btn{width:43px;height:43px}.swap-btn svg{width:21px;height:21px}}
 .credit-links{font-size:13px;line-height:1.5;margin-top:8px}
 .credit-links a{color:var(--teal);text-decoration:underline;text-underline-offset:2px}
-
-/* V29 – polished icons and start-screen cleanup */
-.route-field{position:relative}
-.field-location-icon{position:absolute;right:22px;bottom:22px;width:22px;height:28px;border:2.2px solid var(--teal);border-radius:14px 14px 14px 14px;transform:rotate(0deg);pointer-events:none}
-.field-location-icon::before{content:"";position:absolute;left:5px;top:5px;width:7px;height:7px;border:2px solid var(--teal);border-radius:50%}
-.field-location-icon::after{content:"";position:absolute;left:6px;bottom:-7px;width:7px;height:7px;border-left:2.2px solid var(--teal);border-bottom:2.2px solid var(--teal);background:#fff;transform:rotate(-45deg)}
-.route-field input{padding-right:42px}
-nav a{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;padding-top:8px}
-nav small{margin-top:0}
-.nav-icon{position:relative;display:block;width:27px;height:27px;color:currentColor}
-.search-icon{border:2.5px solid currentColor;border-radius:50%;width:20px;height:20px;margin-top:1px}
-.search-icon::after{content:"";position:absolute;width:9px;height:2.5px;background:currentColor;right:-7px;bottom:-4px;transform:rotate(-48deg);border-radius:2px}
-.heart-icon::before{content:"♡";font-size:34px;line-height:25px;font-family:Arial,sans-serif;font-weight:400}
-.lines-icon::before{content:"";position:absolute;left:2px;right:2px;top:12px;height:2.5px;background:currentColor;box-shadow:0 -7px 0 currentColor,0 7px 0 currentColor;border-radius:2px}
-.lines-icon::after{content:"";position:absolute;width:6px;height:6px;border:2px solid currentColor;border-radius:50%;left:1px;top:9px;box-shadow:16px 0 0 -2px #fff,16px 0 0 0 currentColor}
-.more-icon{display:flex;align-items:center;justify-content:center;gap:4px}
-.more-icon i{display:block;width:6px;height:6px;background:currentColor;border-radius:50%}
-.row-icon{width:28px;height:28px;border:1.8px solid currentColor;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800;line-height:1}
-.now-btn::before{content:"";display:inline-block;width:11px;height:11px;border:1.7px solid currentColor;border-radius:50%;vertical-align:-1px;margin-right:6px}
-@media(max-width:380px){.field-location-icon{right:16px;bottom:19px;transform:scale(.9)}}
