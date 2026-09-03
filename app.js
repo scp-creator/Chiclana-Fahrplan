@@ -18,7 +18,7 @@ const I18N = {
   de: {
     subtitle:"Fahrplan", from:"Von", to:"Nach", date:"Datum", time:"Uhrzeit",
     bus:"Bus", tram:"Tram", both:"Beide", search:"Verbindungen suchen",
-    language:"Sprache", selectedTime:"Fahrten ab", moreTitle:"Mehr", about:"Über diese App", imageCreditTitle:"Bildnachweis", imageCreditText:"Headerbild: Castillo de Sancti Petri bei Sonnenuntergang. Quelle und Lizenz bitte gemäß Originalquelle des verwendeten Fotos beachten.", available:"Verfügbare Verbindungen",
+    language:"Sprache", selectedTime:"Fahrten ab", moreTitle:"Mehr", about:"Über diese App", imageCreditTitle:"Bildnachweis", imageCreditText:"Headerbild: Castillo de Sancti Petri bei Sonnenuntergang. Quelle und Lizenz bitte gemäß Originalquelle des verwendeten Fotos beachten.", available:"Verfügbare Verbindungen", earlier:"Frühere Verbindungen", later:"Spätere Verbindungen",
     navSearch:"Suchen", navFavorites:"Favoriten", navLines:"Linien", navMore:"Mehr",
     stopPlaceholder:"Haltestelle eingeben oder wählen",
     noStop:"Keine passende Haltestelle",
@@ -32,7 +32,7 @@ const I18N = {
   es: {
     subtitle:"Horario", from:"Desde", to:"Hasta", date:"Fecha", time:"Hora",
     bus:"Autobús", tram:"Tranvía", both:"Ambos", search:"Buscar conexiones",
-    language:"Idioma", selectedTime:"Viajes desde", moreTitle:"Más", about:"Sobre esta app", imageCreditTitle:"Créditos de imagen", imageCreditText:"Imagen de cabecera: Castillo de Sancti Petri al atardecer. Consulta la fuente y licencia original del fotógrafo.", available:"Conexiones disponibles",
+    language:"Idioma", selectedTime:"Viajes desde", moreTitle:"Más", about:"Sobre esta app", imageCreditTitle:"Créditos de imagen", imageCreditText:"Imagen de cabecera: Castillo de Sancti Petri al atardecer. Consulta la fuente y licencia original del fotógrafo.", available:"Conexiones disponibles", earlier:"Conexiones anteriores", later:"Conexiones posteriores",
     navSearch:"Buscar", navFavorites:"Favoritos", navLines:"Líneas", navMore:"Más",
     stopPlaceholder:"Escribe o elige una parada",
     noStop:"No se encontró ninguna parada",
@@ -46,7 +46,7 @@ const I18N = {
   en: {
     subtitle:"Timetable", from:"From", to:"To", date:"Date", time:"Time",
     bus:"Bus", tram:"Tram", both:"Both", search:"Search connections",
-    language:"Language", selectedTime:"Trips from", moreTitle:"More", about:"About this app", imageCreditTitle:"Image credits", imageCreditText:"Header image: Castillo de Sancti Petri at sunset. Please follow the original photographer’s source and license terms.", available:"Available connections",
+    language:"Language", selectedTime:"Trips from", moreTitle:"More", about:"About this app", imageCreditTitle:"Image credits", imageCreditText:"Header image: Castillo de Sancti Petri at sunset. Please follow the original photographer’s source and license terms.", available:"Available connections", earlier:"Earlier connections", later:"Later connections",
     navSearch:"Search", navFavorites:"Favorites", navLines:"Lines", navMore:"More",
     stopPlaceholder:"Enter or choose a stop",
     noStop:"No matching stop",
@@ -203,7 +203,8 @@ function search() {
     $("results").innerHTML=`<div class="empty">${escapeHtml(t("chooseStops"))}</div>`;
     return;
   }
-  let arr=[];
+
+  let all=[];
   DATA.lines
     .filter(l=>activeType==="all" || l.type===activeType)
     .filter(l=>!l.validFrom || selectedDate>=l.validFrom)
@@ -211,25 +212,82 @@ function search() {
     .forEach(line=>{
       const fi=findStopIndex(line.stops,from), ti=findStopIndex(line.stops,to);
       if(fi<0 || ti<0 || ti<=fi)return;
-      const candidates=line.trips.map((trip,idx)=>({line,trip,idx,fi,ti,a:trip[fi],b:trip[ti]})).filter(x=>x.a && x.a!=="--");
-      const upcoming=candidates.filter(x=>mins(x.a)>=after).sort((x,y)=>mins(x.a)-mins(y.a));
-      if(upcoming.length)arr.push(...upcoming); else if(candidates.length){candidates.sort((x,y)=>mins(x.a)-mins(y.a));arr.push(candidates[0]);}
+      line.trips.forEach((trip,idx)=>{
+        const a=trip[fi], b=trip[ti];
+        if(!a || a==="--")return;
+        all.push({line,trip,idx,fi,ti,a,b});
+      });
     });
-  arr.sort((x,y)=>mins(x.a)-mins(y.a));
-  $("count").textContent=arr.length?`${arr.length} ${t("found")}`:"";
-  $("results").innerHTML=arr.slice(0,12).map(x=>{
+
+  all.sort((x,y)=>mins(x.a)-mins(y.a));
+  const upcoming=all.filter(x=>mins(x.a)>=after);
+  const earlier=all.filter(x=>mins(x.a)<after);
+
+  // Start with the next available departure and the following five.
+  let start=0;
+  let visible=upcoming.slice(0,6);
+  let mode="upcoming";
+
+  // If there is nothing later today, keep the previous behaviour and show the first departures.
+  if(!visible.length){
+    visible=all.slice(0,6);
+    mode="fallback";
+    start=0;
+  }
+
+  renderResultsWindow(visible, all, from, to, after, earlier, mode, start);
+}
+
+function renderResultsWindow(visible, all, from, to, after, earlier, mode="upcoming", start=0){
+  $("count").textContent=all.length?`${all.length} ${t("found")}`:"";
+  const hasEarlier = mode !== "fallback" && earlier.length > 0;
+  const firstVisibleIndex = visible.length ? all.indexOf(visible[0]) : 0;
+  const lastVisibleIndex = visible.length ? all.indexOf(visible[visible.length-1]) : -1;
+  const hasLater = lastVisibleIndex >= 0 && lastVisibleIndex < all.length-1;
+
+  const earlierButton = hasEarlier
+    ? `<button type="button" class="connection-nav earlier" id="earlierBtn">‹ ${escapeHtml(t("earlier"))}</button>`
+    : "";
+  const laterButton = hasLater
+    ? `<button type="button" class="connection-nav later" id="laterBtn">${escapeHtml(t("later"))} ›</button>`
+    : "";
+
+  const cards=visible.map(x=>{
     const isL7=x.line.name==="L-7";
     const arrival=x.b==="--"?t("openArrival"):x.b;
     const dur=x.b==="--"?t("noPublishedArrival"):fmtDuration(x.a,x.b);
-    return `<article class="result ${x.line.type}" data-result-index="${arr.indexOf(x)}">
+    return `<article class="result ${x.line.type}" data-result-key="${escapeHtml(x.line.name)}-${x.idx}-${x.fi}-${x.ti}">
       <span class="badge ${x.line.type} ${isL7?"l7":""}">${x.line.type==="bus"?"🚌":"🚋"} ${escapeHtml(x.line.name)}</span>
       <span class="direction">${escapeHtml(x.line.direction)}</span>
       <div class="times"><strong>${escapeHtml(x.a)} → ${escapeHtml(arrival)}</strong><span class="dur">${escapeHtml(dur)}${x.b==="--"?"":"　›"}</span></div>
       <div class="route-mini">${escapeHtml(from)} → ${escapeHtml(to)}</div>
     </article>`;
-  }).join("") || `<div class="empty">${escapeHtml(t("noConnection"))}</div>`;
+  }).join("");
 
-  document.querySelectorAll(".result").forEach((el,i)=>el.addEventListener("click",()=>openDetail(arr[i])));
+  $("results").innerHTML = `${earlierButton}${cards || `<div class="empty">${escapeHtml(t("noConnection"))}</div>`}${laterButton}`;
+
+  document.querySelectorAll(".result").forEach(el=>el.addEventListener("click",()=>{
+    const key=el.dataset.resultKey;
+    const found=all.find(x=>`${x.line.name}-${x.idx}-${x.fi}-${x.ti}`===key);
+    if(found)openDetail(found);
+  }));
+
+  const earlierEl=$("earlierBtn"), laterEl=$("laterBtn");
+  if(earlierEl){
+    earlierEl.addEventListener("click",()=>{
+      const newEnd=Math.max(0, firstVisibleIndex-1);
+      const newStart=Math.max(0,newEnd-5);
+      renderResultsWindow(all.slice(newStart,newEnd+1),all,from,to,after,all.filter(x=>mins(x.a)<after),"window",newStart);
+      window.scrollTo({top:0,behavior:"smooth"});
+    });
+  }
+  if(laterEl){
+    laterEl.addEventListener("click",()=>{
+      const newStart=lastVisibleIndex+1;
+      renderResultsWindow(all.slice(newStart,newStart+6),all,from,to,after,all.filter(x=>mins(x.a)<after),"window",newStart);
+      window.scrollTo({top:0,behavior:"smooth"});
+    });
+  }
 }
 
 function openDetail(x) {

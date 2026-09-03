@@ -25,3 +25,6 @@ V6: Linie L-7 in beide Richtungen ergänzt (Castilla ↔ La Barrosa CR), gültig
 
 
 V11: Datum und Uhrzeit nutzen auf dem iPhone wieder die nativen Auswahlfelder. Beim Antippen öffnet sich der Kalender bzw. die Uhrzeit-Auswahl; die aktuelle lokale Uhrzeit bleibt beim Start vorausgefüllt.
+
+
+V21: Die Verbindungssuche zeigt ab der gewählten Uhrzeit die nächste Verbindung plus fünf weitere (insgesamt 6). Über „Frühere Verbindungen“ und „Spätere Verbindungen“ kann man jeweils weitere Zeitfenster aufrufen.

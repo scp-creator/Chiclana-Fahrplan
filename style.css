@@ -184,3 +184,20 @@ nav { height:76px; }
   .tabs { gap:5px; }
   .tabs button, .tabs button.all { font-size:12px; }
 }
+
+
+/* V21 – six connections at a time with earlier/later navigation */
+.connection-nav{
+  display:block;
+  margin:10px auto 12px;
+  padding:11px 22px;
+  border:1px solid #dbe4e6;
+  border-radius:15px;
+  background:#fff;
+  color:var(--ink);
+  font:700 14px/1 -apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;
+  box-shadow:0 2px 9px rgba(0,0,0,.05);
+}
+.connection-nav:active{transform:scale(.98)}
+.connection-nav.earlier{margin-bottom:8px}
+.connection-nav.later{margin-top:10px;margin-bottom:6px}
