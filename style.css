@@ -53,13 +53,12 @@ nav a{text-align:center;padding-top:10px;color:#777;font-size:22px}nav a.selecte
 /* L-7: keine erfundenen Zwischenzeiten anzeigen */
 .stop.no-time .time { visibility: hidden; }
 
-/* Datum/Uhrzeit: normale, gut lesbare Felder statt grauer Safari-Flächen */
+/* Datum/Uhrzeit: native iPhone-Auswahl verwenden */
 #date, #time {
   background: #fff !important;
   color: #111 !important;
-  -webkit-appearance: none;
-  appearance: none;
   border-radius: 8px;
+  font-family: inherit;
 }
 #date {
   min-width: 150px;

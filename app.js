@@ -118,18 +118,7 @@ function fmtDuration(a,b) {
 }
 
 function normalizeTimeInput() {
-  const el = $("time");
-  let value = (el.value || "").trim().replace(".", ":");
-
-  // Accept 7:30 as 07:30 and keep the field in HH:MM format.
-  const match = value.match(/^(\\d{1,2}):(\\d{2})$/);
-  if (match) {
-    let hh = Number(match[1]);
-    let mm = Number(match[2]);
-    if (hh >= 0 && hh <= 23 && mm >= 0 && mm <= 59) {
-      el.value = `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
-    }
-  }
+  // Native iPhone time picker liefert bereits HH:MM.
 }
 
 function search() {
