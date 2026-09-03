@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff"><link rel="manifest" href="manifest.webmanifest">
+<title>Chiclana Fahrplan</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header><div class="title">Verbindung suchen</div><div class="sliders">☷</div></header>
+  <main>
+    <section class="route-card">
+      <label>Von</label><input id="from" list="stops" placeholder="Haltestelle wählen">
+      <div class="route-line"></div>
+      <label>Nach</label><input id="to" list="stops" placeholder="Haltestelle wählen">
+      <datalist id="stops"></datalist>
+    </section>
+    <section class="controls">
+      <label class="field">📅 <span>Datum<input id="date" type="date"></span></label>
+      <label class="field">🕐 <span>Ab<input id="time" type="time" value="08:00"></span></label>
+    </section>
+    <div class="tabs">
+      <button data-type="bus" class="active bus">🚌 Bus</button>
+      <button data-type="tram" class="tram">🚋 Tranvía</button>
+      <button data-type="all">Beide</button>
+    </div>
+    <div class="section-head"><b>Verfügbare Verbindungen</b><span id="count"></span></div>
+    <div id="results"></div>
+  </main>
+  <nav><a class="selected">⌕<small>Suchen</small></a><a>★<small>Favoriten</small></a><a>▣<small>Linien</small></a><a>•••<small>Mehr</small></a></nav>
+</div>
+<div id="detail" class="modal hidden"><div class="sheet"><button class="close" onclick="closeDetail()">‹</button><div id="detailBody"></div></div></div>
+<script src="app.js"></script>
+</body></html>
