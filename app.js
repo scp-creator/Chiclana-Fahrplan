@@ -138,9 +138,9 @@ function search() {
 
   const from = $("from").value.trim();
   const to = $("to").value.trim();
-  const after = mins($("time").value || "00:00"); // Verbindungen ab dieser Uhrzeit
+  const after = mins($("time").value || "00:00");
+  const selectedDate = $("date").value;
 
-  // Until both stops are selected/entered, don't show fake connections.
   if (!from || !to) {
     $("count").textContent = "";
     $("results").innerHTML =
@@ -150,48 +150,36 @@ function search() {
 
   let arr = [];
 
-  const selectedDate = $("date").value;
-  DATA.lines
+  const activeLines = DATA.lines
     .filter(l => activeType === "all" || l.type === activeType)
     .filter(l => !l.validFrom || selectedDate >= l.validFrom)
-    .filter(l => !l.validUntil || selectedDate <= l.validUntil)
-    .forEach(line => {
-      const fi = line.stops.findIndex(s => s.toLowerCase() === from.toLowerCase());
-      const ti = line.stops.findIndex(s => s.toLowerCase() === to.toLowerCase());
+    .filter(l => !l.validUntil || selectedDate <= l.validUntil);
 
-      if (fi < 0 || ti < 0 || ti <= fi) return;
+  activeLines.forEach(line => {
+    const fi = line.stops.findIndex(s => s.toLowerCase() === from.toLowerCase());
+    const ti = line.stops.findIndex(s => s.toLowerCase() === to.toLowerCase());
 
-      // Nur veröffentlichte Abfahrtszeiten werden für die Suche benötigt.
-      // Bei L-7 sind die Zwischen-/Ankunftszeiten nicht veröffentlicht.
-      line.trips.forEach((trip, idx) => {
-        const a = trip[fi], b = trip[ti];
-        if (a === "--" || mins(a) < after) return;
-        arr.push({line, trip, idx, fi, ti, a, b});
-      });
-    });
+    if (fi < 0 || ti < 0 || ti <= fi) return;
 
-  // Falls keine spätere Verbindung gefunden wurde, die erste veröffentlichte
-  // Fahrt des Tages als nächste mögliche Verbindung anzeigen.
-  if (!arr.length) {
-    DATA.lines
-      .filter(l => activeType === "all" || l.type === activeType)
-      .filter(l => !l.validFrom || selectedDate >= l.validFrom)
-      .filter(l => !l.validUntil || selectedDate <= l.validUntil)
-      .forEach(line => {
-        const fi = line.stops.findIndex(s => s.toLowerCase() === from.toLowerCase());
-        const ti = line.stops.findIndex(s => s.toLowerCase() === to.toLowerCase());
-        if (fi < 0 || ti < 0 || ti <= fi) return;
+    const candidates = line.trips
+      .map((trip, idx) => ({line, trip, idx, fi, ti, a: trip[fi], b: trip[ti]}))
+      .filter(x => x.a && x.a !== "--");
 
-        const first = line.trips
-          .map((trip, idx) => ({line, trip, idx, fi, ti, a: trip[fi], b: trip[ti]}))
-          .filter(x => x.a !== "--")
-          .sort((x,y) => mins(x.a)-mins(y.a))[0];
+    // Normalfall: nächste Verbindung ab der gewünschten Uhrzeit.
+    const upcoming = candidates
+      .filter(x => mins(x.a) >= after)
+      .sort((x,y) => mins(x.a) - mins(y.a));
 
-        if (first) arr.push(first);
-      });
-  }
+    if (upcoming.length) {
+      arr.push(...upcoming);
+    } else if (candidates.length) {
+      // Keine spätere Fahrt mehr: erste veröffentlichte Fahrt des Tages.
+      candidates.sort((x,y) => mins(x.a) - mins(y.a));
+      arr.push(candidates[0]);
+    }
+  });
 
-  arr.sort((x,y) => mins(x.a)-mins(y.a));
+  arr.sort((x,y) => mins(x.a) - mins(y.a));
   $("count").textContent = arr.length ? `${arr.length} gefunden` : "";
 
   $("results").innerHTML = arr.slice(0,12).map(x => `
@@ -204,7 +192,7 @@ function search() {
       </div>
       <div class="route-mini">${escapeHtml(from)} → ${escapeHtml(to)}</div>
     </article>
-  `).join("") || `<div class="empty">Keine direkte Verbindung mit diesen Angaben gefunden.</div>`;
+  `).join("") || `<div class="empty">Keine direkte Verbindung für diese Haltestellen gefunden.</div>`;
 }
 
 function openDetail(x) {
